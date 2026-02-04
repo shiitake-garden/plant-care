@@ -207,14 +207,14 @@ function bindEvents(){
     reader.readAsText(file, 'utf-8');
   });*/
 
-  /*
+  
   // サンプル読込：fetch → 失敗なら埋め込みにフォールバック
   const SAMPLE_URL = 'fruit_schedule_pot10_no_region.csv';
   const EMBEDDED = 
     '作物,栽培形態,月,作業,施肥_種類,N(g),P(g),K(g),施肥基準,施肥_メモ,薬剤\n'
   + 'レモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\n'
   + 'ブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n';
-*/
+
   
   $('loadSample').addEventListener('click', ()=>{
     setStatus('読込中...');
