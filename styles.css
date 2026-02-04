@@ -220,7 +220,7 @@
 #schedule.show-details td:nth-child(5) {
   /* 画面幅に応じて広がる“可変”＋上限値を設定 */
   width: 28%;              /* 目安。全体バランスに合わせて調整可（25〜32%） */
-  max-width: 420px;        /* PC想定の上限。必要に応じて増減 */
+  max-width: 200px;        /* PC想定の上限。必要に応じて増減 */
   white-space: normal;     /* 折返し許可 */
   overflow-wrap: anywhere; /* 長い語/記号も改行 */
   word-break: break-word;  /* 旧ブラウザ向け */
@@ -251,12 +251,12 @@
 }
 
 /* ---- スマホ向け（任意）：さらに凝縮したい場合 ---- */
-@media (max-width: 600px) {
+@media (max-width: 100px) {
   /* 施肥_種類はやや短く、でも読める範囲を確保 */
   #schedule.show-details th:nth-child(5),
   #schedule.show-details td:nth-child(5) {
     width: 40%;
-    max-width: 320px;
+    max-width: 100px;
   }
   /* N/P/K は 32px 程度まで圧縮（フォントサイズによっては 36px へ） */
   #schedule.show-details th:nth-child(6),
