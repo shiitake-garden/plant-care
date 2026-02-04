@@ -48,7 +48,7 @@ header .subtitle {
 #schedule td:nth-child(4),
 #schedule th:nth-child(4) {
   /* 最大幅をお好みで。例: 400px */
-  max-width: 400px;
+  max-width: 300px;
 
   /* 折返し指定（日本語＋英単語混在に強い） */
   white-space: normal;        /* nowrap の解除 */
