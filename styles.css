@@ -81,7 +81,6 @@
   table-layout: fixed;   /* 列の幅指定や max-width を効かせやすくする */
   width: 100%;
 }
-
 /* 1列目：作物 */
 #schedule th:nth-child(1),
 #schedule td:nth-child(1) {
@@ -100,6 +99,7 @@
   word-break: break-word;
 }
 
+/*
 /* 3列目：月（数値は折り返さないので幅は狭めに） */
 #schedule th:nth-child(3),
 #schedule td:nth-child(3) {
@@ -107,6 +107,102 @@
   width: 72px;                /* 数字列は width も併用すると安定 */
   text-align: center;
   white-space: nowrap;        /* 月は1行に収める */
+}*/
+
+/* ========== A) 詳細OFF（初期表示：#schedule に .show-details が無い状態） ========== */
+/* 施肥_種類(5列目) 以降を隠すルールは従来のままでOK */
+#schedule:not(.show-details) th:nth-child(n+5),
+#schedule:not(.show-details) td:nth-child(n+5) {
+  display: none;
 }
 
+/* 列幅の決め方：1〜3列は固定幅、4列目（作業）が余りを吸収 */
+#schedule:not(.show-details) {
+  table-layout: fixed;   /* 幅計算を安定化（重要） */
+  width: 100%;
+}
 
+/* 1列目：作物 */
+#schedule:not(.show-details) th:nth-child(1),
+#schedule:not(.show-details) td:nth-child(1) {
+  width: 160px;          /* お好みで 140〜180px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 2列目：栽培形態 */
+#schedule:not(.show-details) th:nth-child(2),
+#schedule:not(.show-details) td:nth-child(2) {
+  width: 140px;          /* お好みで 120〜160px */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3列目：月（狭め＆中央寄せ） */
+#schedule:not(.show-details) th:nth-child(3),
+#schedule:not(.show-details) td:nth-child(3) {
+  width: 72px;           /* 64〜96px 目安 */
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 4列目：作業（余り幅を受け持つ） */
+#schedule:not(.show-details) th:nth-child(4),
+#schedule:not(.show-details) td:nth-child(4) {
+  width: auto;           /* ← ここがポイント。残りを全部引き受ける */
+  max-width: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+/* ========== B) 詳細ON（チェックON：#schedule に .show-details が付く状態） ========== */
+/* 施肥以降は表示（従来どおり） */
+#schedule.show-details th,
+#schedule.show-details td {
+  display: table-cell;
+}
+
+/* 幅の考え方を切り替える：1〜3列は max-width 中心、4列は適度に確保 */
+#schedule.show-details {
+  table-layout: fixed;   /* 詳細表示時も安定描画 */
+  width: 100%;
+}
+
+/* 1列目：作物（最大幅で抑える／折り返し可にするなら normal へ） */
+#schedule.show-details th:nth-child(1),
+#schedule.show-details td:nth-child(1) {
+  max-width: 160px;
+  white-space: nowrap;       /* 折返し優先なら normal */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 2列目：栽培形態 */
+#schedule.show-details th:nth-child(2),
+#schedule.show-details td:nth-child(2) {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3列目：月 */
+#schedule.show-details th:nth-child(3),
+#schedule.show-details td:nth-child(3) {
+  width: 72px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 4列目：作業（詳細表示時は少しだけ幅を確保） */
+#schedule.show-details th:nth-child(4),
+#schedule.show-details td:nth-child(4) {
+  max-width: 520px;          /* PCなら 480〜560px 目安 */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
