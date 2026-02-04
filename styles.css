@@ -1,73 +1,13 @@
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;margin:0;color:#222;background:#f7f7fb}
-header{padding:16px 20px;background:#324fa8;color:#fff}
-header h1{margin:0;font-size:20px}
-header .subtitle{margin:4px 0 0 0;font-size:12px;opacity:.9}
-.notice{background:#fff;padding:16px 20px;border-bottom:1px solid #e6e6ef}
-.notice h2{margin:0 0 8px 0;font-size:16px}
-.controls{display:flex;gap:24px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:#fff;border-bottom:1px solid #e6e6ef}
-.controls label{margin-right:8px;font-size:14px}
-.controls input[type=text]{padding:6px 8px}
-.controls select{padding:6px 8px}
-.controls button{padding:6px 10px;border:1px solid #c9c9d8;background:#f0f0f8;border-radius:6px;cursor:pointer}
-.controls button:hover{background:#e7e7f6}
-.table-wrap{padding:12px 20px}
-#schedule{width:100%;border-collapse:collapse;background:#fff}
-#schedule th,#schedule td{border:1px solid #e6e6ef;padding:8px;vertical-align:top}
-#schedule thead th{position:sticky;top:0;background:#f3f5ff;z-index:1}
-#schedule tbody tr:nth-child(even){background:#fafaff}
-footer{padding:12px 20px;font-size:12px;color:#666}
-
-/* 全体 */
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-               "Hiragino Kaku Gothic ProN", "Noto Sans JP",
-               "Yu Gothic", Meiryo, sans-serif;
-  margin: 0;
-  background: #f6f7fb;
-  color: #222;
-}
-
-/* ヘッダー */
-header {
-  background: #2f6f5f;
-  color: #fff;
-  padding: 16px 20px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
-header .subtitle {
-  margin-top: 4px;
-  font-size: 13px;
-  opacity: 0.9;
-}
-/* --- 作業列（4列目）の幅を制限して折り返す --- */
-#schedule td:nth-child(4),
-#schedule th:nth-child(4) {
-  /* 最大幅をお好みで。例: 400px */
-  max-width: 300px;
-
-  /* 折返し指定（日本語＋英単語混在に強い） */
-  white-space: normal;        /* nowrap の解除 */
-  overflow-wrap: anywhere;    /* 長い単語/URL 等も強制改行 */
-  word-break: break-word;     /* 古いブラウザ向けフォールバック */
-
-  /* 見やすさの微調整（任意） */
-  line-height: 1.6;
-}
-/* 全セルに薄い罫線（横・縦） */
+/* ===== テーブルの見た目（安定・視認性） ===== */
 #schedule {
-  border-collapse: collapse;     /* 罫線の二重表示を防ぐ */
-  background: #fff;
   width: 100%;
+  background: #fff;
+  border-collapse: collapse;
+  table-layout: fixed;            /* 列幅を安定させ、折り返しを効かせる */
 }
-
 #schedule th,
 #schedule td {
-  border: 1px solid #dfe3e6;     /* ライトグレーの枠線 */
+  border: 1px solid #cbd5d0;      /* 薄すぎず濃すぎない罫線色 */
   padding: 10px 8px;
   vertical-align: top;
   font-size: 13px;
@@ -76,49 +16,50 @@ header .subtitle {
   word-break: break-word;
 }
 
-/* ヘッダーの背景と下線を少し強めに */
+/* ヘッダーは固定＋境界をやや強調 */
 #schedule thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   background: #eef6f3;
-  border-bottom: 2px solid #b9c7c2; /* ヘッダー下を太めに */
+  border-bottom: 2px solid #9fb0aa;
   text-align: left;
 }
-/* ====== 罫線を濃く・はっきり出す ====== */
-#schedule th,
-#schedule td {
-  border: 1px solid #cbd5d0;           /* 既存より濃いグレーに */
+
+/* ===== 列バランス ===== */
+/* 月（3列目）をコンパクト＆中央寄せ */
+#schedule th:nth-child(3),
+#schedule td:nth-child(3) {
+  width: 64px;
+  text-align: center;
+  font-weight: 600;
 }
 
-/* ヘッダー下は少し太くして境目を明確に */
-#schedule thead th {
-  border-bottom: 2px solid #9fb0aa;    /* stickyでも段差が目立たないよう濃いめ */
-}
-
-/* ====== 作業列（4列目）の幅制限＋折り返し ====== */
-/* 幅の指定を尊重させたいので table-layout:fixed を併用（下で設定） */
-#schedule td:nth-child(4),
-#schedule th:nth-child(4) {
-  width: 520px;               /* 目安：PCなら 480〜560px の範囲で調整 */
+/* 作業（4列目）に最大幅＋折り返し */
+#schedule th:nth-child(4),
+#schedule td:nth-child(4) {
+  width: 520px;                   /* PC基準の目安：480〜560px */
   max-width: 520px;
-  white-space: normal;        /* 折り返し許可 */
-  overflow-wrap: anywhere;    /* 長い語やURLも強制改行可 */
-  word-break: break-word;     /* 旧ブラウザ向けフォールバック */
   line-height: 1.6;
 }
 
-/* 列幅を安定させる（重要）：幅指定を効かせたい場合は fixed が有効 */
-#schedule {
-  table-layout: fixed;        /* 一度決めた列幅で描画。大きく崩れにくい */
-  width: 100%;
-}
-
-/* （任意）数値列は右寄せにして桁を揃える */
+/* N/P/K（6〜8列目）は右寄せで桁揃え */
 #schedule td:nth-child(6),
 #schedule td:nth-child(7),
 #schedule td:nth-child(8) {
   text-align: right;
-  width: 72px;                /* ここもお好みで。列幅の目安 */
+  width: 72px;
 }
 
-/* （任意）ゼブラ＆ホバー：行の見通しを良くする */
-#schedule tbody tr:nth-child(even){ background:#fafbfc; }
-#schedule tbody tr:hover{ background:#f2f8f6; }
+/* 交互行の淡色＆ホバー */
+#schedule tbody tr:nth-child(even) { background: #fafbfc; }
+#schedule tbody tr:hover { background: #f2f8f6; }
+
+/* スマホで作業列を少し細く（必要に応じて調整） */
+@media (max-width: 600px) {
+  #schedule th:nth-child(4),
+  #schedule td:nth-child(4) {
+    width: 260px;
+    max-width: 260px;
+  }
+}
