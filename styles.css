@@ -44,3 +44,17 @@ header .subtitle {
   font-size: 13px;
   opacity: 0.9;
 }
+/* --- 作業列（4列目）の幅を制限して折り返す --- */
+#schedule td:nth-child(4),
+#schedule th:nth-child(4) {
+  /* 最大幅をお好みで。例: 480px */
+  max-width: 480px;
+
+  /* 折返し指定（日本語＋英単語混在に強い） */
+  white-space: normal;        /* nowrap の解除 */
+  overflow-wrap: anywhere;    /* 長い単語/URL 等も強制改行 */
+  word-break: break-word;     /* 古いブラウザ向けフォールバック */
+
+  /* 見やすさの微調整（任意） */
+  line-height: 1.6;
+}
