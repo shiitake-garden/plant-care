@@ -63,3 +63,17 @@
     max-width: 260px;
   }
 }
+
+/* --- デフォルトでは「施肥_種類(5列目)以降」を隠す --- */
+#schedule:not(.show-details) th:nth-child(n+5),
+#schedule:not(.show-details) td:nth-child(n+5) {
+  display: none;
+}
+
+/* --- 詳細表示ON（#schedule に .show-details 付与時）は全列表示 --- */
+#schedule.show-details th,
+#schedule.show-details td {
+  display: table-cell;
+}
+
+
