@@ -1,58 +1,95 @@
-// --- Utility: CSV parse ---
+// ===== 安心版 app.js =====
+
+// ユーティリティ
+function $(id){ return document.getElementById(id); }
+function log(msg){ 
+  const el = $('debugLog'); 
+  if(el){ el.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`; } 
+  console.log(msg); 
+}
+function setStatus(msg){ const el = $('status'); if(el) el.textContent = msg; }
+
+// CSVパーサ（RFC4180想定、二重引用対応）
 function parseCSV(content){
   const rows=[]; let i=0; const len=content.length; let cur=''; let row=[]; let inQuotes=false;
   while(i<len){
     const ch=content[i];
     if(inQuotes){
-      if(ch==='"'){
-        if(i+1<len && content[i+1]==='"'){cur+='"'; i++;}
-        else{inQuotes=false;}
-      }else{cur+=ch}
+      if(ch === '"'){
+        if(i+1<len && content[i+1] === '"'){ cur += '"'; i++; }
+        else { inQuotes = false; }
+      }else{ cur += ch; }
     }else{
-      if(ch==='"'){inQuotes=true}
-      else if(ch===','){row.push(cur);cur=''}
-      else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur=''}
-      else if(ch==='\r'){/* ignore */}
-      else{cur+=ch}
+      if(ch === '"'){ inQuotes = true; }
+      else if(ch === ','){ row.push(cur); cur=''; }
+      else if(ch === '\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(ch === '\r'){ /* ignore */ }
+      else { cur += ch; }
     }
     i++;
   }
-  if(cur.length>0 || row.length>0){row.push(cur); rows.push(row)}
+  if(cur.length>0 || row.length>0){ row.push(cur); rows.push(row); }
   return rows;
 }
 
-const headers = ['作物','栽培形態','月','作業','施肥_種類','N(g)','P(g)','K(g)','施肥基準','施肥_メモ','薬剤'];
-let master=[]; // array of objects
+// 期待ヘッダー（共通フォーマット）
+const HEADERS = ['作物','栽培形態','月','作業','施肥_種類','N(g)','P(g)','K(g)','施肥基準','施肥_メモ','薬剤'];
+let master = []; // 表示元データ（配列）
 
+// 行配列 → オブジェクト配列
 function rowsToObjects(rows){
-  // If first row equals headers, use it; else assume our fixed headers
-  let start=0; let h=headers;
-  if(rows.length && rows[0].length===headers.length && rows[0].every((v,i)=>v.trim()===headers[i])){
-    h = rows[0]; start=1;
+  if(!rows || !rows.length){ return []; }
+  let start = 0;
+  let header = rows[0].map(v => (v||'').trim());
+
+  // ヘッダー完全一致チェック
+  const same = header.length === HEADERS.length && header.every((v,i)=> v === HEADERS[i]);
+  if(!same){
+    // 診断：どの列が足りない/余分か
+    const missing = HEADERS.filter(h => !header.includes(h));
+    const extra   = header.filter(h => !HEADERS.includes(h));
+    let msg = 'CSVヘッダーが想定と異なります。\n'
+      + `想定: ${HEADERS.join(',')}\n`
+      + `実際: ${header.join(',')}\n`;
+    if(missing.length) msg += `不足: ${missing.join(',')}\n`;
+    if(extra.length)   msg += `余分: ${extra.join(',')}\n`;
+    log(msg);
+    alert(msg);
+    // ヘッダーが違う場合でも、強制的にHEADERS順に詰め替えを試みる
+  } else {
+    start = 1;
   }
-  const out=[];
-  for(let r=start;r<rows.length;r++){
-    const row=rows[r]; if(!row.length) continue;
-    const obj={};
-    for(let i=0;i<h.length;i++) obj[h[i]] = (row[i]??'').trim();
+
+  // 実データ組み立て
+  const out = [];
+  for(let r=start; r<rows.length; r++){
+    const row = rows[r];
+    if(!row || row.length === 0) continue;
+    const obj = {};
+    for(let i=0; i<HEADERS.length; i++){
+      obj[HEADERS[i]] = (row[i] ?? '').trim();
+    }
     out.push(obj);
   }
   return out;
 }
 
-function numberOrBlank(v){const n=Number(v); return Number.isFinite(n)?n:''}
+// 数値セルの見た目調整
+function numberOrBlank(v){
+  const n = Number(v);
+  return Number.isFinite(n) ? n : '';
+}
 
+// テーブル描画
 function renderTable(data){
-  const tbody=document.querySelector('#schedule tbody');
-  tbody.innerHTML='';
-  data.forEach(rec=>{
-    const tr=document.createElement('tr');
-    headers.forEach(key=>{
-      const td=document.createElement('td');
-      let val = rec[key]??'';
-      if(['N(g)','P(g)','K(g)','月'].includes(key)){
-        const n = Number(val); val = Number.isFinite(n)?n:'';
-      }
+  const tbody = document.querySelector('#schedule tbody');
+  tbody.innerHTML = '';
+  (data || []).forEach(rec=>{
+    const tr = document.createElement('tr');
+    HEADERS.forEach(key=>{
+      const td = document.createElement('td');
+      let val = rec[key] ?? '';
+      if(['月','N(g)','P(g)','K(g)'].includes(key)) val = numberOrBlank(val);
       td.textContent = val;
       tr.appendChild(td);
     });
@@ -60,126 +97,148 @@ function renderTable(data){
   });
 }
 
-function unique(arr, key){return [...new Set(arr.map(a=>a[key]).filter(Boolean))]}
-
+// ドロップダウン生成
 function fillMonthOptions(){
-  const monthSel=document.getElementById('monthFilter');
-  monthSel.innerHTML='<option value="">（すべて）</option>';
-  for(let m=1;m<=12;m++){
-    const o=document.createElement('option'); o.value=String(m); o.textContent=String(m); monthSel.appendChild(o);
+  const sel = $('monthFilter');
+  sel.innerHTML = '<option value="">（すべて）</option>';
+  for(let m=1; m<=12; m++){
+    const o = document.createElement('option');
+    o.value = String(m);
+    o.textContent = String(m);
+    sel.appendChild(o);
   }
 }
 
+function unique(arr, key){ return [...new Set((arr||[]).map(a=>a[key]).filter(Boolean))]; }
+
 function fillCropOptions(){
-  const cropSel=document.getElementById('cropFilter');
-  cropSel.innerHTML='<option value="">（すべて）</option>';
-  unique(master,'作物').forEach(v=>{
-    const o=document.createElement('option'); o.value=v; o.textContent=v; cropSel.appendChild(o);
+  const sel = $('cropFilter');
+  sel.innerHTML = '<option value="">（すべて）</option>';
+  unique(master, '作物').forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
   });
 }
 
+// フィルタ適用
 function applyFilters(){
-  const crop=document.getElementById('cropFilter').value.trim();
-  const month=document.getElementById('monthFilter').value.trim();
-  const kw=document.getElementById('keyword').value.trim();
-  let data=[...master];
-  if(crop) data=data.filter(r=>r['作物']===crop);
-  if(month) data=data.filter(r=>String(r['月'])===month);
+  const crop = $('cropFilter').value.trim();
+  const month = $('monthFilter').value.trim();
+  const kw = $('keyword').value.trim();
+
+  let data = [...master];
+  if(crop)  data = data.filter(r => r['作物'] === crop);
+  if(month) data = data.filter(r => String(r['月']) === month);
   if(kw){
-    const k=kw.toLowerCase();
-    data=data.filter(r=>['作業','施肥_種類','施肥_メモ','薬剤'].some(f=>String(r[f]||'').toLowerCase().includes(k)));
+    const k = kw.toLowerCase();
+    const fields = ['作業','施肥_種類','施肥_メモ','薬剤'];
+    data = data.filter(r => fields.some(f => String(r[f]||'').toLowerCase().includes(k)));
   }
   renderTable(data);
+  setStatus(`表示件数：${data.length}（全${master.length}）`);
 }
 
-function setStatus(msg){
-  const el=document.getElementById('status'); if(el) el.textContent=msg;
-}
-
-// Events
-['cropFilter','monthFilter'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', applyFilters);
-});
-
-document.getElementById('keyword').addEventListener('input', applyFilters);
-
-document.getElementById('clearFilters').addEventListener('click',()=>{
-  document.getElementById('cropFilter').value='';
-  document.getElementById('monthFilter').value='';
-  document.getElementById('keyword').value='';
-  renderTable(master);
-});
-
+// CSVダウンロード
 function downloadCSV(filename, rows){
-  const headerLine = headers.join(',');
-  const body = rows.map(r=>headers.map(h=>{
-    const v=String(r[h]??'');
-    const needsQuote = v.includes(',')||v.includes('\n')||v.includes('"');
-    const vv = v.replace(/"/g,'""');
-    return needsQuote?`"${vv}"`:vv;
+  const headerLine = HEADERS.join(',');
+  const body = (rows||[]).map(r=>HEADERS.map(h=>{
+    const v = String(r[h] ?? '');
+    const needsQuote = v.includes(',') || v.includes('\n') || v.includes('"');
+    const vv = v.replace(/"/g, '""');
+    return needsQuote ? `"${vv}"` : vv;
   }).join(',')).join('\n');
-  const csv = headerLine+'\n'+body;
+  const csv = headerLine + '\n' + body;
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
-document.getElementById('exportCsv').addEventListener('click',()=>{
-  const crop=document.getElementById('cropFilter').value.trim();
-  const month=document.getElementById('monthFilter').value.trim();
-  const kw=document.getElementById('keyword').value.trim();
-  let data=[...master];
-  if(crop) data=data.filter(r=>r['作物']===crop);
-  if(month) data=data.filter(r=>String(r['月'])===month);
-  if(kw){
-    const k=kw.toLowerCase();
-    data=data.filter(r=>['作業','施肥_種類','施肥_メモ','薬剤'].some(f=>String(r[f]||'').toLowerCase().includes(k)));
-  }
-  const nameParts=['schedule'];
-  if(crop) nameParts.push(crop);
-  if(month) nameParts.push(month.padStart?month.padStart(2,'0'):month);
-  downloadCSV(nameParts.join('_')+'.csv', data);
-});
+// 事件（イベント）束ね
+function bindEvents(){
+  ['cropFilter','monthFilter'].forEach(id=>{
+    $(id).addEventListener('change', applyFilters);
+  });
+  $('keyword').addEventListener('input', applyFilters);
 
-// File input load
-const fileInput=document.getElementById('csvFile');
-fileInput.addEventListener('change', (e)=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const rows=parseCSV(reader.result);
-    master = rowsToObjects(rows);
-    fillCropOptions();
-    applyFilters();
-    setStatus('✅ CSV読込済み：'+(master.length)+'件');
-  };
-  reader.readAsText(file, 'utf-8');
-});
+  $('clearFilters').addEventListener('click', ()=>{
+    $('cropFilter').value = '';
+    $('monthFilter').value = '';
+    $('keyword').value = '';
+    renderTable(master);
+    setStatus(`表示件数：${master.length}（全${master.length}）`);
+  });
 
-// Sample CSV (embedded fallback to avoid file:// fetch CORS)
-const EMBEDDED_SAMPLE = `作物,栽培形態,月,作業,施肥_種類,N(g),P(g),K(g),施肥基準,施肥_メモ,薬剤\nレモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\nブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n`;
+  $('exportCsv').addEventListener('click', ()=>{
+    const crop  = $('cropFilter').value.trim();
+    const month = $('monthFilter').value.trim();
+    const kw    = $('keyword').value.trim();
+    let data = [...master];
+    if(crop)  data = data.filter(r => r['作物'] === crop);
+    if(month) data = data.filter(r => String(r['月']) === month);
+    if(kw){
+      const k = kw.toLowerCase();
+      const fields = ['作業','施肥_種類','施肥_メモ','薬剤'];
+      data = data.filter(r => fields.some(f => String(r[f]||'').toLowerCase().includes(k)));
+    }
+    const parts = ['schedule'];
+    if(crop) parts.push(crop);
+    if(month) parts.push(month.padStart ? month.padStart(2,'0') : month);
+    downloadCSV(parts.join('_') + '.csv', data);
+  });
 
-const SAMPLE_CSV_URL = 'fruit_schedule_pot10_no_region.csv';
+  // ローカルCSV読込
+  $('csvFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0]; 
+    if(!file){ return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result;
+      const rows = parseCSV(text);
+      master = rowsToObjects(rows);
+      log(`ローカルCSV読込：${master.length}件`);
+      fillCropOptions();
+      applyFilters();
+      setStatus(`✅ CSV読込済み：${master.length}件`);
+    };
+    reader.readAsText(file, 'utf-8');
+  });
 
-document.getElementById('loadSample').addEventListener('click',()=>{
-  // Try fetch first (if same-folder hosting), else fallback to embedded
-  fetch(SAMPLE_CSV_URL).then(r=>{
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.text();
-  }).catch(()=> EMBEDDED_SAMPLE).then(text=>{
-    const rows=parseCSV(text);
-    master=rowsToObjects(rows);
-    fillCropOptions();
-    applyFilters();
-    setStatus('✅ サンプル読込済み：'+(master.length)+'件');
-  }).catch(err=>{
-    setStatus('⚠ サンプル読み込みに失敗：'+err);
-  })
-});
+  // サンプル読込：fetch → 失敗なら埋め込みにフォールバック
+  const SAMPLE_URL = 'fruit_schedule_pot10_no_region.csv';
+  const EMBEDDED = 
+    '作物,栽培形態,月,作業,施肥_種類,N(g),P(g),K(g),施肥基準,施肥_メモ,薬剤\n'
+  + 'レモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\n'
+  + 'ブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n';
 
-// Initialize
-fillMonthOptions();
-fillCropOptions(); // empty at first
-renderTable([]);
-setStatus('🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。');
+  $('loadSample').addEventListener('click', ()=>{
+    setStatus('読込中...');
+    fetch(SAMPLE_URL).then(r=>{
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    }).catch(err=>{
+      log(`fetch失敗（${err}）。埋め込みサンプルに切替。`);
+      return EMBEDDED;
+    }).then(text=>{
+      const rows = parseCSV(text);
+      master = rowsToObjects(rows);
+      log(`サンプル読込：${master.length}件`);
+      fillCropOptions();
+      applyFilters();
+      setStatus(`✅ サンプル読込済み：${master.length}件`);
+    }).catch(err=>{
+      setStatus(`⚠ サンプル読み込みに失敗：${err}`);
+      log(`サンプル読込エラー：${err}`);
+    });
+  });
+}
+
+// 初期化
+(function init(){
+  fillMonthOptions();   // 常時1〜12をセット
+  fillCropOptions();    // 空（後で埋める）
+  renderTable([]);      // 空表
+  setStatus('🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。');
+  bindEvents();
+})();
