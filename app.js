@@ -188,8 +188,6 @@ function bindEvents(){
     downloadCSV(parts.join('_') + '.csv', data);
   });
 
-  
-  
   // ローカルCSV読込
   $('csvFile').addEventListener('change', (e)=>{
     const file = e.target.files[0]; 
@@ -207,7 +205,6 @@ function bindEvents(){
     reader.readAsText(file, 'utf-8');
   });
 
-  
   // サンプル読込：fetch → 失敗なら埋め込みにフォールバック
   const SAMPLE_URL = 'fruit_schedule_pot10_no_region.csv';
   const EMBEDDED = 
@@ -215,7 +212,6 @@ function bindEvents(){
   + 'レモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\n'
   + 'ブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n';
 
-  
   $('loadSample').addEventListener('click', ()=>{
     setStatus('読込中...');
     fetch(SAMPLE_URL).then(r=>{
