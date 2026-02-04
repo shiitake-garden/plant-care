@@ -206,3 +206,67 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+/* ================================
+   詳細表示ON：幅の最適化（5〜8列）
+   #schedule に .show-details が付いたときに適用
+   ================================ */
+#schedule.show-details {
+  table-layout: fixed;   /* 幅計算を安定化 */
+  width: 100%;
+}
+
+/* 5列目：施肥_種類 → 広げる（内容を読みやすく） */
+#schedule.show-details th:nth-child(5),
+#schedule.show-details td:nth-child(5) {
+  /* 画面幅に応じて広がる“可変”＋上限値を設定 */
+  width: 28%;              /* 目安。全体バランスに合わせて調整可（25〜32%） */
+  max-width: 420px;        /* PC想定の上限。必要に応じて増減 */
+  white-space: normal;     /* 折返し許可 */
+  overflow-wrap: anywhere; /* 長い語/記号も改行 */
+  word-break: break-word;  /* 旧ブラウザ向け */
+  line-height: 1.5;
+}
+
+/* 6〜8列目：N/P/K → 現在の約半分へ（右寄せ） */
+#schedule.show-details th:nth-child(6),
+#schedule.show-details td:nth-child(6),
+#schedule.show-details th:nth-child(7),
+#schedule.show-details td:nth-child(7),
+#schedule.show-details th:nth-child(8),
+#schedule.show-details td:nth-child(8) {
+  text-align: right;
+  width: 40px;             /* 以前 72px 前後なら “約半分” を意識して 36〜40px を設定 */
+  max-width: 40px;
+  white-space: nowrap;     /* 数値は1行で */
+  overflow: hidden;        /* 念のため */
+  text-overflow: ellipsis; /* ごく稀な桁溢れ対策 */
+}
+
+/* 参考：月（3列目）は中央寄せのまま維持（必要ならここも再掲） */
+#schedule.show-details th:nth-child(3),
+#schedule.show-details td:nth-child(3) {
+  width: 72px;             /* 64〜96px の範囲でお好み調整 */
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---- スマホ向け（任意）：さらに凝縮したい場合 ---- */
+@media (max-width: 600px) {
+  /* 施肥_種類はやや短く、でも読める範囲を確保 */
+  #schedule.show-details th:nth-child(5),
+  #schedule.show-details td:nth-child(5) {
+    width: 40%;
+    max-width: 320px;
+  }
+  /* N/P/K は 32px 程度まで圧縮（フォントサイズによっては 36px へ） */
+  #schedule.show-details th:nth-child(6),
+  #schedule.show-details td:nth-child(6),
+  #schedule.show-details th:nth-child(7),
+  #schedule.show-details td:nth-child(7),
+  #schedule.show-details th:nth-child(8),
+  #schedule.show-details td:nth-child(8) {
+    width: 32px;
+    max-width: 32px;
+  }
+}
+
