@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>作物管理スケジュール（鉢植え・10号基準）</title>
+  styles.css
+</head>
+<body>
+  <header>
+    <h1>作物管理スケジュール</h1>
+    <p class="subtitle">共通フォーマット：作物 / 栽培形態 / 月 / 作業 / 施肥_種類 / N(g) / P(g) / K(g) / 施肥基準 / 施肥_メモ / 薬剤</p>
+  </header>
+
+  <section class="notice">
+    <h2>地域の読み替えガイド（表外の注意書き）</h2>
+    <p>
+      本表は <strong>暖地（静岡西部）</strong> をおおむね基準にしています。お住まいの地域がより寒冷（または温暖）な場合、
+      <strong>作業時期を±1〜3週間</strong> 程度シフトして運用してください。特に「遅霜対策」「開花・結実管理」「高温期の水管理」「防寒」は地域差が大きいので、
+      現地の気象に合わせて調整しましょう。
+    </p>
+  </section>
+
+  <section class="controls">
+    <div class="upload">
+      <label for="csvFile">CSVを読み込む（ローカルファイル）：</label>
+      <input type="file" id="csvFile" accept=".csv" />
+      <button id="loadSample">サンプルCSVを読み込む</button>
+    </div>
+    <div class="filters">
+      <label>作物：
+        <select id="cropFilter"><option value="">（すべて）</option></select>
+      </label>
+      <label>月：
+        <select id="monthFilter"><option value="">（すべて）</option></select>
+      </label>
+      <label>キーワード：
+        <input type="text" id="keyword" placeholder="作業・施肥・薬剤など" oninput="applyFilters()" />
+      </label>
+      <button id="clearFilters">フィルタ解除</button>
+      <button id="exportCsv">表示中をCSV保存</button>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <table id="schedule">
+      <thead>
+        <tr>
+          <th>作物</th>
+          <th>栽培形態</th>
+          <th>月</th>
+          <th>作業</th>
+          <th>施肥_種類</th>
+          <th>N(g)</th>
+          <th>P(g)</th>
+          <th>K(g)</th>
+          <th>施肥基準</th>
+          <th>施肥_メモ</th>
+          <th>薬剤</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <footer>
+    <p>© 作物管理スケジュール / CSVローカル読込対応（データはブラウザ内で処理、外部送信なし）</p>
+  </footer>
+
+  app.js</script>
+</body>
+</html>
