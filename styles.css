@@ -82,3 +82,43 @@ header .subtitle {
   border-bottom: 2px solid #b9c7c2; /* ヘッダー下を太めに */
   text-align: left;
 }
+/* ====== 罫線を濃く・はっきり出す ====== */
+#schedule th,
+#schedule td {
+  border: 1px solid #cbd5d0;           /* 既存より濃いグレーに */
+}
+
+/* ヘッダー下は少し太くして境目を明確に */
+#schedule thead th {
+  border-bottom: 2px solid #9fb0aa;    /* stickyでも段差が目立たないよう濃いめ */
+}
+
+/* ====== 作業列（4列目）の幅制限＋折り返し ====== */
+/* 幅の指定を尊重させたいので table-layout:fixed を併用（下で設定） */
+#schedule td:nth-child(4),
+#schedule th:nth-child(4) {
+  width: 520px;               /* 目安：PCなら 480〜560px の範囲で調整 */
+  max-width: 520px;
+  white-space: normal;        /* 折り返し許可 */
+  overflow-wrap: anywhere;    /* 長い語やURLも強制改行可 */
+  word-break: break-word;     /* 旧ブラウザ向けフォールバック */
+  line-height: 1.6;
+}
+
+/* 列幅を安定させる（重要）：幅指定を効かせたい場合は fixed が有効 */
+#schedule {
+  table-layout: fixed;        /* 一度決めた列幅で描画。大きく崩れにくい */
+  width: 100%;
+}
+
+/* （任意）数値列は右寄せにして桁を揃える */
+#schedule td:nth-child(6),
+#schedule td:nth-child(7),
+#schedule td:nth-child(8) {
+  text-align: right;
+  width: 72px;                /* ここもお好みで。列幅の目安 */
+}
+
+/* （任意）ゼブラ＆ホバー：行の見通しを良くする */
+#schedule tbody tr:nth-child(even){ background:#fafbfc; }
+#schedule tbody tr:hover{ background:#f2f8f6; }
