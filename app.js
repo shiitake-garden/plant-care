@@ -242,6 +242,32 @@ function bindEvents(){
   setStatus('🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。');
   bindEvents();
 })();
+
+
+
+// ===== 詳細列の表示/非表示トグル =====
+(function bindDetailsToggle(){
+  const table = document.getElementById('schedule');
+  const toggle = document.getElementById('toggleDetails');
+  if (!table || !toggle) return;
+
+  // 初期状態：チェックなし → 非表示（= クラスなし）
+  toggle.checked = false;
+  table.classList.remove('show-details');
+
+  // 状態変更時にクラスを付け外し
+  toggle.addEventListener('change', ()=>{
+    if (toggle.checked) {
+      table.classList.add('show-details');   // → 5列目以降が表示
+    } else {
+      table.classList.remove('show-details'); // → 5列目以降が非表示
+    }
+  });
+})();
+
+
+
+
 // ====== ここから自動読込追加（plant.csv を同階層から読む） ======
 (function autoLoadPlantCsv(){
   const CSV_URL = 'plant.csv'; // index.html と同じフォルダに置く
