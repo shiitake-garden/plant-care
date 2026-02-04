@@ -126,7 +126,7 @@
 #schedule:not(.show-details) th:nth-child(1),
 #schedule:not(.show-details) td:nth-child(1) {
   width: 200px;          /* お好みで 140〜180px */
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
 }
