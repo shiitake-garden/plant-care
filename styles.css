@@ -269,4 +269,24 @@
     max-width: 32px;
   }
 }
+/* ヘッダー背景：園芸っぽい淡いグリーングラデーション */
+header {
+  background: linear-gradient(135deg, #2f6f5f 0%, #4fa58f 60%, #79cbb3 100%);
+  color: #fff;
+  padding: 20px 20px 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+/* タイトルとサブタイトルの読みやすさ向上 */
+header h1 {
+  margin: 0 0 6px;
+  font-size: clamp(20px, 3vw, 28px);
+  letter-spacing: .02em;
+  text-shadow: 0 1px 0 rgba(0,0,0,.1);
+}
+header .subtitle {
+  margin: 0;
+  font-size: 12px;
+  opacity: .95;
+}
 
