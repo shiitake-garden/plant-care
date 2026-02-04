@@ -215,7 +215,7 @@ function bindEvents(){
   + 'レモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\n'
   + 'ブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n';
 */
-  /*
+  
   $('loadSample').addEventListener('click', ()=>{
     setStatus('読込中...');
     fetch(SAMPLE_URL).then(r=>{
@@ -236,7 +236,7 @@ function bindEvents(){
       log(`サンプル読込エラー：${err}`);
     });
   });
-}*/
+}
 
 // 初期化
 (function init(){
