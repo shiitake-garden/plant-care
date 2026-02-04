@@ -176,7 +176,7 @@
 #schedule.show-details th:nth-child(1),
 #schedule.show-details td:nth-child(1) {
   max-width: 200px;
-  white-space: nowrap;       /* 折返し優先なら normal */
+  white-space: normal;       /* 折返し優先なら normal */
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -201,7 +201,7 @@
 /* 4列目：作業（詳細表示時は少しだけ幅を確保） */
 #schedule.show-details th:nth-child(4),
 #schedule.show-details td:nth-child(4) {
-  max-width: 520px;          /* PCなら 480〜560px 目安 */
+  max-width: 450px;          /* PCなら 480〜560px 目安 */
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
