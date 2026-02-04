@@ -58,3 +58,27 @@ header .subtitle {
   /* 見やすさの微調整（任意） */
   line-height: 1.6;
 }
+/* 全セルに薄い罫線（横・縦） */
+#schedule {
+  border-collapse: collapse;     /* 罫線の二重表示を防ぐ */
+  background: #fff;
+  width: 100%;
+}
+
+#schedule th,
+#schedule td {
+  border: 1px solid #dfe3e6;     /* ライトグレーの枠線 */
+  padding: 10px 8px;
+  vertical-align: top;
+  font-size: 13px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ヘッダーの背景と下線を少し強めに */
+#schedule thead th {
+  background: #eef6f3;
+  border-bottom: 2px solid #b9c7c2; /* ヘッダー下を太めに */
+  text-align: left;
+}
