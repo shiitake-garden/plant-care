@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>作物管理スケジュール（鉢植え・10号基準）</title>
   styles.css
+  <meta name="color-scheme" content="light dark" />
 </head>
 <body>
   <header>
     <h1>作物管理スケジュール</h1>
-    <p class="subtitle">共通フォーマット：作物 / 栽培形態 / 月 / 作業 / 施肥_種類 / N(g) / P(g) / K(g) / 施肥基準 / 施肥_メモ / 薬剤</p>
+    <p class="subtitle">
+      共通フォーマット：作物 / 栽培形態 / 月 / 作業 / 施肥_種類 / N(g) / P(g) / K(g) / 施肥基準 / 施肥_メモ / 薬剤
+    </p>
   </header>
 
-  <section class="notice">
-    <h2>地域の読み替えガイド（表外の注意書き）</h2>
+  <section class="notice" aria-labelledby="region-note-title">
+    <h2 id="region-note-title">地域の読み替えガイド（表外の注意書き）</h2>
     <p>
       本表は <strong>暖地（静岡西部）</strong> をおおむね基準にしています。お住まいの地域がより寒冷（または温暖）な場合、
       <strong>作業時期を±1〜3週間</strong> 程度シフトして運用してください。特に「遅霜対策」「開花・結実管理」「高温期の水管理」「防寒」は地域差が大きいので、
@@ -21,44 +24,56 @@
     </p>
   </section>
 
-  <section class="controls">
+  <section class="controls" aria-labelledby="controls-title">
+    <h2 id="controls-title" class="sr-only">操作</h2>
+
     <div class="upload">
       <label for="csvFile">CSVを読み込む（ローカルファイル）：</label>
       <input type="file" id="csvFile" accept=".csv" />
-      <button id="loadSample">サンプルCSVを読み込む</button>
+      <button id="loadSample" type="button">サンプルCSVを読み込む</button>
     </div>
-    <div class="filters">
+
+    <div class="filters" role="group" aria-label="フィルタ">
       <label>作物：
-        <select id="cropFilter"><option value="">（すべて）</option></select>
+        <select id="cropFilter" aria-label="作物フィルタ">
+          <option value="">（すべて）</option>
+        </select>
       </label>
       <label>月：
-        <select id="monthFilter"><option value="">（すべて）</option></select>
+        <select id="monthFilter" aria-label="月フィルタ">
+          <option value="">（すべて）</option>
+        </select>
       </label>
       <label>キーワード：
         <input type="text" id="keyword" placeholder="作業・施肥・薬剤など" />
       </label>
-      <button id="clearFilters">フィルタ解除</button>
-      <button id="exportCsv">表示中をCSV保存</button>
+      <button id="clearFilters" type="button">フィルタ解除</button>
+      <button id="exportCsv" type="button">表示中をCSV保存</button>
     </div>
-    <p id="status" class="status">🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。</p>
+
+    <p id="status" class="status" role="status" aria-live="polite">
+      🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。
+    </p>
+    <!-- 画面で原因切り分けしやすいように、任意のデバッグログ表示枠 -->
     <pre id="debugLog" style="white-space:pre-wrap;background:#fff;border:1px solid #e6e6ef;padding:8px;margin:8px 20px;"></pre>
   </section>
 
-  <section class="table-wrap">
+  <section class="table-wrap" aria-labelledby="table-title">
+    <h2 id="table-title" class="sr-only">作物管理表</h2>
     <table id="schedule">
       <thead>
         <tr>
-          <th>作物</th>
-          <th>栽培形態</th>
-          <th>月</th>
-          <th>作業</th>
-          <th>施肥_種類</th>
-          <th>N(g)</th>
-          <th>P(g)</th>
-          <th>K(g)</th>
-          <th>施肥基準</th>
-          <th>施肥_メモ</th>
-          <th>薬剤</th>
+          <th scope="col">作物</th>
+          <th scope="col">栽培形態</th>
+          <th scope="col">月</th>
+          <th scope="col">作業</th>
+          <th scope="col">施肥_種類</th>
+          <th scope="col">N(g)</th>
+          <th scope="col">P(g)</th>
+          <th scope="col">K(g)</th>
+          <th scope="col">施肥基準</th>
+          <th scope="col">施肥_メモ</th>
+          <th scope="col">薬剤</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -68,7 +83,7 @@
   <footer>
     <p>© 作物管理スケジュール / CSVローカル読込対応（データはブラウザ内で処理、外部送信なし）</p>
   </footer>
-app.js?v=20260204</script>
-  
+
+  <!-- 安心版 app.js（フォールバック・ヘッダー診断・1〜12月固定・ログ） -->
+  app.js?v=20260204</script><!-- [1](blob:https://outlook.office.com/36290fe7-8f78-403e-a1aa-3d552d668768) -->
 </body>
-</html>
