@@ -47,8 +47,8 @@ header .subtitle {
 /* --- 作業列（4列目）の幅を制限して折り返す --- */
 #schedule td:nth-child(4),
 #schedule th:nth-child(4) {
-  /* 最大幅をお好みで。例: 480px */
-  max-width: 480px;
+  /* 最大幅をお好みで。例: 400px */
+  max-width: 400px;
 
   /* 折返し指定（日本語＋英単語混在に強い） */
   white-space: normal;        /* nowrap の解除 */
