@@ -242,3 +242,33 @@ function bindEvents(){
   setStatus('🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。');
   bindEvents();
 })();
+// ====== ここから自動読込追加（plant.csv を同階層から読む） ======
+(function autoLoadPlantCsv(){
+  const CSV_URL = 'plant.csv'; // index.html と同じフォルダに置く
+  // GitHub Pages 等の http(s) であれば fetch 可。file:// の場合は失敗し得る。
+  fetch(CSV_URL, { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    })
+    .then(text => {
+      const rows = parseCSV(text);
+      // 期待ヘッダーとの不一致を診断（安心版の rowsToObjects は警告も出します）
+      master = rowsToObjects(rows);
+      if (!master || master.length === 0) {
+        setStatus('⚠ plant.csv の内容が空のようです。サンプル読込またはCSVを選択してください。');
+        log('plant.csv 読込：0件');
+        return;
+      }
+      fillCropOptions();
+      applyFilters();
+      setStatus(`✅ plant.csv 自動読込：${master.length}件`);
+      log(`plant.csv 自動読込：${master.length}件`);
+    })
+    .catch(err => {
+      // 自動読込に失敗しても、既存のUI（サンプル/手動読込）で続行できる
+      setStatus(`ℹ plant.csv の自動読込はスキップ：${err}. 「サンプルCSVを読み込む」か「CSVを読み込む」を使ってください。`);
+      log(`plant.csv 自動読込エラー：${err}`);
+    });
+})();
+
