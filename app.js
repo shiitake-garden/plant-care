@@ -189,7 +189,7 @@ function bindEvents(){
   });
 
   
-  /*
+  
   // ローカルCSV読込
   $('csvFile').addEventListener('change', (e)=>{
     const file = e.target.files[0]; 
@@ -205,7 +205,7 @@ function bindEvents(){
       setStatus(`✅ CSV読込済み：${master.length}件`);
     };
     reader.readAsText(file, 'utf-8');
-  });*/
+  });
 
   
   // サンプル読込：fetch → 失敗なら埋め込みにフォールバック
