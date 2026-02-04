@@ -85,7 +85,7 @@
 /* 1列目：作物 */
 #schedule th:nth-child(1),
 #schedule td:nth-child(1) {
-  max-width: 140px;           /* ← お好みで調整 */
+  max-width: 75px;           /* ← お好みで調整 */
   white-space: normal;         /* 折り返し可 */
   overflow-wrap: anywhere;     /* 長い単語/記号も改行 */
   word-break: break-word;      /* 旧ブラウザ向け */
@@ -94,7 +94,7 @@
 /* 2列目：栽培形態 */
 #schedule th:nth-child(2),
 #schedule td:nth-child(2) {
-  max-width: 140px;           /* ← お好みで調整（例：120〜180px） */
+  max-width: 75px;           /* ← お好みで調整（例：120〜180px） */
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
