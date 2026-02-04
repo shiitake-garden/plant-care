@@ -272,3 +272,55 @@ function bindEvents(){
     });
 })();
 
+// ====== ここから自動読込＋今月フィルタ適用 ======
+(function autoLoadPlantCsv(){
+  const CSV_URL = 'plant.csv'; // index.html と同じフォルダ
+  // 現在の「月」（1〜12）
+  const thisMonth = String(new Date().getMonth() + 1);
+
+  fetch(CSV_URL, { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    })
+    .then(text => {
+      const rows = parseCSV(text);
+      master = rowsToObjects(rows);
+
+      if (!master || master.length === 0) {
+        setStatus('⚠ plant.csv の内容が空のようです。サンプル読込またはCSVを選択してください。');
+        log('plant.csv 読込：0件');
+        return;
+      }
+
+      // （重要）フィルタUIの選択肢を作成してから、今月をセット
+      fillCropOptions();     // 作物プルダウンを埋める
+      fillMonthOptions?.();  // 月プルダウン（関数がある場合のみ呼ぶ／安心版は存在します）
+
+      // 今月を選択状態にして、フィルタ適用
+      const monthSel = document.getElementById('monthFilter');
+      if (monthSel) {
+        monthSel.value = thisMonth;  // 例: 2月なら "2"
+      }
+
+      // 表描画（今月のみ）
+      applyFilters();
+
+      // ステータス表示
+      setStatus(`✅ plant.csv 自動読込：${master.length}件（今月=${thisMonth}で表示中）`);
+      log(`plant.csv 自動読込：${master.length}件 → 今月=${thisMonth}で絞り込み`);
+      
+      // （任意）今月の最初の行へ軽くスクロール
+      try {
+        const tbody = document.querySelector('#schedule tbody');
+        const firstRow = tbody && tbody.querySelector('tr');
+        if (firstRow) firstRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) {}
+    })
+    .catch(err => {
+      // 自動読込に失敗しても、既存のUI（サンプル/手動読込）で続行可能
+      setStatus(`ℹ plant.csv の自動読込はスキップ：${err}. 「サンプルCSVを読み込む」か「CSVを読み込む」を使ってください。`);
+      log(`plant.csv 自動読込エラー：${err}`);
+    });
+})();
+
