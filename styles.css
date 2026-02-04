@@ -84,7 +84,7 @@
 /* 1列目：作物 */
 #schedule th:nth-child(1),
 #schedule td:nth-child(1) {
-  max-width: 75px;           /* ← お好みで調整 */
+  max-width: 200px;           /* ← お好みで調整 */
   white-space: normal;         /* 折り返し可 */
   overflow-wrap: anywhere;     /* 長い単語/記号も改行 */
   word-break: break-word;      /* 旧ブラウザ向け */
@@ -125,7 +125,7 @@
 /* 1列目：作物 */
 #schedule:not(.show-details) th:nth-child(1),
 #schedule:not(.show-details) td:nth-child(1) {
-  width: 160px;          /* お好みで 140〜180px */
+  width: 200px;          /* お好みで 140〜180px */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -175,7 +175,7 @@
 /* 1列目：作物（最大幅で抑える／折り返し可にするなら normal へ） */
 #schedule.show-details th:nth-child(1),
 #schedule.show-details td:nth-child(1) {
-  max-width: 160px;
+  max-width: 200px;
   white-space: nowrap;       /* 折返し優先なら normal */
   overflow: hidden;
   text-overflow: ellipsis;
