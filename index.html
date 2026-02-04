@@ -26,7 +26,7 @@
   </section>
 
   <section class="controls" aria-labelledby="controls-title">
-    
+        
     <h2 id="controls-title" class="sr-only">操作</h2>
 
     <div class="upload">
@@ -52,7 +52,14 @@
       <button id="clearFilters" type="button">フィルタ解除</button>
       <button id="exportCsv" type="button">表示中をCSV保存</button>
     </div>
+    
+    <!-- 施肥以降の詳細列を表示/非表示するスイッチ -->
+    <label style="margin-left:8px;">
+      <input type="checkbox" id="toggleDetails" />
+      施肥・基準・薬剤などの詳細を表示
+    </label>
 
+    
     <p id="status" class="status" role="status" aria-live="polite">
       🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。
     </p>
