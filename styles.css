@@ -1,13 +1,12 @@
-/* ===== テーブルの見た目（安定・視認性） ===== */
+/* ===== 共通（ベース） ===== */
 #schedule {
   width: 100%;
   background: #fff;
   border-collapse: collapse;
-  table-layout: fixed;            /* 列幅を安定させ、折り返しを効かせる */
+  table-layout: fixed;        /* ← 重複していた指定をここだけに集約 */
 }
-#schedule th,
-#schedule td {
-  border: 1px solid #cbd5d0;      /* 薄すぎず濃すぎない罫線色 */
+#schedule th, #schedule td {
+  border: 1px solid #cbd5d0;
   padding: 10px 8px;
   vertical-align: top;
   font-size: 13px;
@@ -15,219 +14,28 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-
-/* ヘッダーは固定＋境界をやや強調 */
 #schedule thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  position: sticky; top: 0; z-index: 2;
   background: #eef6f3;
   border-bottom: 2px solid #9fb0aa;
   text-align: left;
 }
-
-/* ===== 列バランス ===== */
-/* 月（3列目）をコンパクト＆中央寄せ */
-#schedule th:nth-child(3),
-#schedule td:nth-child(3) {
-  width: 64px;
-  text-align: center;
-  font-weight: 600;
+/* 列幅のベース：3=月、4=作業 */
+#schedule th:nth-child(3), #schedule td:nth-child(3) {
+  width: 72px; text-align: center; white-space: nowrap;
 }
-
-/* 作業（4列目）に最大幅＋折り返し */
-#schedule th:nth-child(4),
-#schedule td:nth-child(4) {
-  width: 520px;                   /* PC基準の目安：480〜560px */
-  max-width: 520px;
+#schedule th:nth-child(4), #schedule td:nth-child(4) {
   line-height: 1.6;
 }
-
-/* N/P/K（6〜8列目）は右寄せで桁揃え */
-#schedule td:nth-child(6),
-#schedule td:nth-child(7),
-#schedule td:nth-child(8) {
-  text-align: right;
-  width: 72px;
-}
-
-/* 交互行の淡色＆ホバー */
+/* 交互色＆ホバー */
 #schedule tbody tr:nth-child(even) { background: #fafbfc; }
 #schedule tbody tr:hover { background: #f2f8f6; }
 
-/* スマホで作業列を少し細く（必要に応じて調整） */
-@media (max-width: 600px) {
-  #schedule th:nth-child(4),
-  #schedule td:nth-child(4) {
-    width: 260px;
-    max-width: 260px;
-  }
-}
-
-/* --- デフォルトでは「施肥_種類(5列目)以降」を隠す --- */
+/* ===== 詳細OFF：5列目以降を非表示（この一組のみでOK） ===== */
 #schedule:not(.show-details) th:nth-child(n+5),
-#schedule:not(.show-details) td:nth-child(n+5) {
-  display: none;
-}
+#schedule:not(.show-details) td:nth-child(n+5) { display: none; }
 
-/* --- 詳細表示ON（#schedule に .show-details 付与時）は全列表示 --- */
-#schedule.show-details th,
-#schedule.show-details td {
-  display: table-cell;
-}
-
-/* 列幅を安定させる（重要） */
-#schedule {
-  table-layout: fixed;   /* 列の幅指定や max-width を効かせやすくする */
-  width: 100%;
-}
-/* 1列目：作物 */
-#schedule th:nth-child(1),
-#schedule td:nth-child(1) {
-  max-width: 200px;           /* ← お好みで調整 */
-  white-space: normal;         /* 折り返し可 */
-  overflow-wrap: anywhere;     /* 長い単語/記号も改行 */
-  word-break: break-word;      /* 旧ブラウザ向け */
-}
-
-/* 2列目：栽培形態 */
-#schedule th:nth-child(2),
-#schedule td:nth-child(2) {
-  max-width: 75px;           /* ← お好みで調整（例：120〜180px） */
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/*
-/* 3列目：月（数値は折り返さないので幅は狭めに） */
-#schedule th:nth-child(3),
-#schedule td:nth-child(3) {
-  max-width: 72px;            /* 例：64〜96px */
-  width: 72px;                /* 数字列は width も併用すると安定 */
-  text-align: center;
-  white-space: nowrap;        /* 月は1行に収める */
-}*/
-
-/* ========== A) 詳細OFF（初期表示：#schedule に .show-details が無い状態） ========== */
-/* 施肥_種類(5列目) 以降を隠すルールは従来のままでOK */
-#schedule:not(.show-details) th:nth-child(n+5),
-#schedule:not(.show-details) td:nth-child(n+5) {
-  display: none;
-}
-
-/* 列幅の決め方：1〜3列は固定幅、4列目（作業）が余りを吸収 */
-#schedule:not(.show-details) {
-  table-layout: fixed;   /* 幅計算を安定化（重要） */
-  width: 100%;
-}
-
-/* 1列目：作物 */
-#schedule:not(.show-details) th:nth-child(1),
-#schedule:not(.show-details) td:nth-child(1) {
-  width: 200px;          /* お好みで 140〜180px */
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 2列目：栽培形態 */
-#schedule:not(.show-details) th:nth-child(2),
-#schedule:not(.show-details) td:nth-child(2) {
-  width: 140px;          /* お好みで 120〜160px */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 3列目：月（狭め＆中央寄せ） */
-#schedule:not(.show-details) th:nth-child(3),
-#schedule:not(.show-details) td:nth-child(3) {
-  width: 72px;           /* 64〜96px 目安 */
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* 4列目：作業（余り幅を受け持つ） */
-#schedule:not(.show-details) th:nth-child(4),
-#schedule:not(.show-details) td:nth-child(4) {
-  width: auto;           /* ← ここがポイント。残りを全部引き受ける */
-  max-width: none;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  line-height: 1.6;
-}
-
-/* ========== B) 詳細ON（チェックON：#schedule に .show-details が付く状態） ========== */
-/* 施肥以降は表示（従来どおり） */
-#schedule.show-details th,
-#schedule.show-details td {
-  display: table-cell;
-}
-
-/* 幅の考え方を切り替える：1〜3列は max-width 中心、4列は適度に確保 */
-#schedule.show-details {
-  table-layout: fixed;   /* 詳細表示時も安定描画 */
-  width: 100%;
-}
-
-/* 1列目：作物（最大幅で抑える／折り返し可にするなら normal へ） */
-#schedule.show-details th:nth-child(1),
-#schedule.show-details td:nth-child(1) {
-  max-width: 200px;
-  white-space: normal;       /* 折返し優先なら normal */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 2列目：栽培形態 */
-#schedule.show-details th:nth-child(2),
-#schedule.show-details td:nth-child(2) {
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 3列目：月 */
-#schedule.show-details th:nth-child(3),
-#schedule.show-details td:nth-child(3) {
-  width: 72px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* 4列目：作業（詳細表示時は少しだけ幅を確保） */
-#schedule.show-details th:nth-child(4),
-#schedule.show-details td:nth-child(4) {
-  max-width: 450px;          /* PCなら 480〜560px 目安 */
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-/* ================================
-   詳細表示ON：幅の最適化（5〜8列）
-   #schedule に .show-details が付いたときに適用
-   ================================ */
-#schedule.show-details {
-  table-layout: fixed;   /* 幅計算を安定化 */
-  width: 100%;
-}
-
-/* 5列目：施肥_種類 → 広げる（内容を読みやすく） */
-#schedule.show-details th:nth-child(5),
-#schedule.show-details td:nth-child(5) {
-  /* 画面幅に応じて広がる“可変”＋上限値を設定 */
- /* width: 15%;    */          /* 目安。全体バランスに合わせて調整可（25〜32%） */
-  max-width: 200px;        /* PC想定の上限。必要に応じて増減 */
-  white-space: normal;     /* 折返し許可 */
-  overflow-wrap: anywhere; /* 長い語/記号も改行 */
-  word-break: break-word;  /* 旧ブラウザ向け */
-  line-height: 1.5;
-}
-
-/* 6〜8列目：N/P/K → 現在の約半分へ（右寄せ） */
+/* ===== 詳細ON：差分（数値列の幅をタイト化） ===== */
 #schedule.show-details th:nth-child(6),
 #schedule.show-details td:nth-child(6),
 #schedule.show-details th:nth-child(7),
@@ -235,58 +43,27 @@
 #schedule.show-details th:nth-child(8),
 #schedule.show-details td:nth-child(8) {
   text-align: right;
-  width: 40px;             /* 以前 72px 前後なら “約半分” を意識して 36〜40px を設定 */
-  max-width: 40px;
-  white-space: nowrap;     /* 数値は1行で */
-  overflow: hidden;        /* 念のため */
-  text-overflow: ellipsis; /* ごく稀な桁溢れ対策 */
+  width: 40px; max-width: 40px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* 参考：月（3列目）は中央寄せのまま維持（必要ならここも再掲） */
-#schedule.show-details th:nth-child(3),
-#schedule.show-details td:nth-child(3) {
-  width: 72px;             /* 64〜96px の範囲でお好み調整 */
-  text-align: center;
-  white-space: nowrap;
+/* ===== スマホ最適化（作業列のみ最小限） ===== */
+@media (max-width: 600px) {
+  #schedule th:nth-child(4), #schedule td:nth-child(4) {
+    width: 260px; max-width: 260px;
+  }
 }
 
-/* ---- スマホ向け（任意）：さらに凝縮したい場合 ---- */
-@media (max-width: 100px) {
-  /* 施肥_種類はやや短く、でも読める範囲を確保 */
-  #schedule.show-details th:nth-child(5),
-  #schedule.show-details td:nth-child(5) {
-   /* width: 20%;*/
-    max-width: 100px;
-  }
-  /* N/P/K は 32px 程度まで圧縮（フォントサイズによっては 36px へ） */
-  #schedule.show-details th:nth-child(6),
-  #schedule.show-details td:nth-child(6),
-  #schedule.show-details th:nth-child(7),
-  #schedule.show-details td:nth-child(7),
-  #schedule.show-details th:nth-child(8),
-  #schedule.show-details td:nth-child(8) {
-    width: 32px;
-    max-width: 32px;
-  }
-}
-/* ヘッダー背景：園芸っぽい淡いグリーングラデーション */
+/* ===== ヘッダーの装飾は現状踏襲 ===== */
 header {
   background: linear-gradient(135deg, #2f6f5f 0%, #4fa58f 60%, #79cbb3 100%);
-  color: #fff;
-  padding: 20px 20px 24px;
+  color: #fff; padding: 20px 20px 24px;
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }
-
-/* タイトルとサブタイトルの読みやすさ向上 */
 header h1 {
   margin: 0 0 6px;
   font-size: clamp(20px, 3vw, 28px);
   letter-spacing: .02em;
   text-shadow: 0 1px 0 rgba(0,0,0,.1);
 }
-header .subtitle {
-  margin: 0;
-  font-size: 12px;
-  opacity: .95;
-}
-
+header .subtitle { margin: 0; font-size: 12px; opacity: .95; }
