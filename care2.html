@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>園芸害虫検索（試作UI）</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; line-height: 1.6; padding: 16px; }
+  .search-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: end; }
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  input[type="text"], select { width: 100%; padding: 8px; font-size: 14px; }
+  .hint { color: #666; font-size: 12px; margin-top: 4px; }
+  .result { margin-top: 20px; }
+  .result table { width: 100%; border-collapse: collapse; }
+  .result th, .result td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef; font-size: 12px; margin-right: 4px; }
+  .muted { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>園芸害虫検索（試作UI）</h1>
+
+<div class="search-grid" role="search" aria-label="園芸害虫検索フォーム">
+  <!-- 作物：テキスト + プルダウン -->
+  <div>
+    <label for="cropText">作物（テキスト入力でプルダウン候補を絞り込み）</label>
+    <input id="cropText" type="text" placeholder="例）と（トマト／とうもろこし など）" autocomplete="off" />
+    <select id="cropSelect" size="6" aria-label="作物一覧"></select>
+    <div class="hint">未入力時は全作物。入力で候補を動的絞り込み（前方一致＋部分一致）。</div>
+  </div>
+
+  <!-- 害虫：テキスト + プルダウン -->
+  <div>
+    <label for="pestText">害虫（テキスト入力でプルダウン候補を絞り込み）</label>
+    <input id="pestText" type="text" placeholder="例）あぶ（アブラムシ）など" autocomplete="off" />
+    <select id="pestSelect" size="6" aria-label="害虫一覧"></select>
+    <div class="hint">未入力時は全害虫。入力で候補を動的絞り込み（前方一致＋部分一致）。</div>
+  </div>
+
+  <!-- 症状：プルダウンのみ -->
+  <div>
+    <label for="symptomSelect">症状（プルダウンのみ）</label>
+    <select id="symptomSelect" size="6" aria-label="症状一覧"></select>
+    <div class="hint">症状はリストから選択のみ。</div>
+  </div>
+
+  <!-- 薬剤：テキストのみ -->
+  <div>
+    <label for="productText">薬剤（テキスト検索のみ）</label>
+    <input id="productText" type="text" placeholder="例）モスピラン, アファーム など" autocomplete="off" />
+    <div class="hint">薬剤はテキスト検索のみ。空欄なら全薬剤が検索対象。</div>
+  </div>
+</div>
+
+<div style="margin-top:12px;">
+  <button id="btnSearch">検索</button>
+  <span class="muted">※ Enter でも検索可</span>
+</div>
+
+<div class="result" id="result"></div>
+
+<script>
+/** --------------- 擬似データ（後日API化OK） --------------- **/
+const crops = [
+  "トマト","とうもろこし","ブドウ","イチゴ","ナス","モモ","キュウリ","ピーマン"
+];
+
+const pests = [
+  "アブラムシ類","ハダニ類","アザミウマ類","カイガラムシ類","コナジラミ類","ヨトウムシ","コウモリガ","ハモグリバエ類"
+];
+
+const symptoms = [
+  "葉がベタつく（すす病）","白い小さな虫が飛ぶ","葉裏が白くカスれる","葉に穴があく",
+  "実が変形・傷がつく","新梢がしおれる","果面が汚れる","葉が黄化する"
+];
+
+const products = [
+  "モスピラン","アドマイヤー","ダントツ","ウララDF","トランスフォーム",
+  "アファーム","コテツ","プレオ","フェニックス","コロマイト","カネマイト","ダニトロン","スターマイト"
+];
+
+/** 交差テーブル（超簡易のサンプル）
+ * 本番は「作物×害虫×症状×薬剤」や「害虫×症状」「害虫×薬剤」など中間テーブルへ
+ */
+const DATA = [
+  { crop:"ブドウ", pest:"ハダニ類", symptom:"葉裏が白くカスれる", product:["コロマイト","カネマイト","ダニトロン","スターマイト"] },
+  { crop:"ブドウ", pest:"アザミウマ類", symptom:"実が変形・傷がつく", product:["ディアナSC","モスピラン","ダントツ","アファーム"] },
+  { crop:"イチゴ", pest:"ハダニ類", symptom:"葉裏が白くカスれる", product:["コロマイト","スターマイト","カネマイト"] },
+  { crop:"イチゴ", pest:"アブラムシ類", symptom:"葉が黄化する", product:["ウララDF","トランスフォーム","ベストガード","モスピラン"] },
+  { crop:"トマト", pest:"アザミウマ類", symptom:"実が変形・傷がつく", product:["ディアナSC","プレオ","アファーム"] },
+  { crop:"ナス", pest:"アブラムシ類", symptom:"葉がベタつく（すす病）", product:["モスピラン","アドマイヤー","ダントツ"] },
+];
+
+/** --------------- ユーティリティ --------------- **/
+const norm = s => (s || "").toString().trim();
+const contains = (text, q) => norm(text).includes(q);
+const startsWith = (text, q) => norm(text).startsWith(q);
+
+/** デバウンス（入力時の無駄な再描画を抑制） */
+function debounce(fn, wait=120) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+/** セレクト要素へ候補を流し込み */
+function fillSelect(select, items, selectedValue=null) {
+  const prev = select.value;
+  select.innerHTML = "";
+  items.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v; opt.textContent = v;
+    select.appendChild(opt);
+  });
+  // 既選択値を保持できれば保持、それ以外は先頭
+  const keep = selectedValue || prev;
+  if (keep && items.includes(keep)) select.value = keep;
+}
+
+/** --------------- 初期化 --------------- **/
+const cropText = document.getElementById("cropText");
+const cropSelect = document.getElementById("cropSelect");
+const pestText = document.getElementById("pestText");
+const pestSelect = document.getElementById("pestSelect");
+const symptomSelect = document.getElementById("symptomSelect");
+const productText = document.getElementById("productText");
+const btnSearch = document.getElementById("btnSearch");
+const result = document.getElementById("result");
+
+// 初期表示：未入力なので全候補
+fillSelect(cropSelect, crops);
+fillSelect(pestSelect, pests);
+fillSelect(symptomSelect, symptoms);
+
+/** --------------- 入力でプルダウンの候補を絞り込み --------------- **/
+const updateCropOptions = debounce(() => {
+  const q = norm(cropText.value);
+  if (!q) return fillSelect(cropSelect, crops);
+  // 「前方一致」優先 + 「部分一致」も拾う
+  const head = crops.filter(v => startsWith(v, q));
+  const part = crops.filter(v => !startsWith(v, q) && contains(v, q));
+  fillSelect(cropSelect, [...head, ...part]);
+});
+
+const updatePestOptions = debounce(() => {
+  const q = norm(pestText.value);
+  if (!q) return fillSelect(pestSelect, pests);
+  const head = pests.filter(v => startsWith(v, q));
+  const part = pests.filter(v => !startsWith(v, q) && contains(v, q));
+  fillSelect(pestSelect, [...head, ...part]);
+});
+
+cropText.addEventListener("input", updateCropOptions);
+pestText.addEventListener("input", updatePestOptions);
+
+/** --------------- 検索 --------------- **/
+function doSearch() {
+  const crop = cropSelect.value || "";
+  const pest = pestSelect.value || "";
+  const symptom = symptomSelect.value || "";
+  const ptext = norm(productText.value); // 空なら全件対象の方針
+
+  // フィルタ：未選択は “ワイルドカード”扱い
+  let rows = DATA.filter(row =>
+    (!crop || row.crop === crop) &&
+    (!pest || row.pest === pest) &&
+    (!symptom || row.symptom === symptom)
+  );
+
+  // 薬剤テキスト：1語でも含めばヒット（空欄ならスキップ）
+  if (ptext) {
+    const q = ptext.toLowerCase();
+    rows = rows.filter(row => row.product.some(p => p.toLowerCase().includes(q)));
+  }
+
+  // レンダリング
+  if (rows.length === 0) {
+    result.innerHTML = `<p>該当データがありませんでした。条件を緩めて再検索してください。</p>`;
+    return;
+  }
+
+  const html = `
+    <table aria-label="検索結果">
+      <thead>
+        <tr>
+          <th>作物</th><th>害虫</th><th>症状</th><th>薬剤（例）</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td>${r.crop}</td>
+            <td>${r.pest}</td>
+            <td>${r.symptom}</td>
+            <td>${r.product.map(x => `<span class="pill">${x}</span>`).join("")}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <p class="muted">※ 表示はサンプル。実運用では MAFF/FAMIC の最新ラベルで最終確認できる導線を付与してください。</p>
+  `;
+  result.innerHTML = html;
+}
+
+btnSearch.addEventListener("click", doSearch);
+document.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+</script>
+</body>
+</html>
