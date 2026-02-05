@@ -29,12 +29,12 @@
   <section class="controls" aria-labelledby="controls-title">
         
     <h2 id="controls-title" class="sr-only">操作</h2>
-<!-- controls 内の .upload を削除 -->
-<!-- 初期ステータスも変更 -->
-<p id="status" class="status" role="status" aria-live="polite">
-  🔄 CSV自動読込待機中：同フォルダの plant.csv を読み込みます。
-</p>
 
+    <div class="upload">
+      <label for="csvFile">CSVを読み込む（ローカルファイル）：</label>
+      <input type="file" id="csvFile" accept=".csv" />
+      <button id="loadSample" type="button">サンプルCSVを読み込む</button>
+    </div>
 
     <div class="filters" role="group" aria-label="フィルタ">
       <label>作物：
