@@ -79,9 +79,28 @@ footer {
   color: #555;
 }
 
+/* ===== フッター（ヘッダーと同じく横いっぱいの帯） ===== */
+footer {
+  background: #2f6f5f;           /* 単色の場合 */
+  /* ヘッダーと揃えたい場合は下のグラデーションを使う */
+  /* background: linear-gradient(135deg, #2f6f5f 0%, #4fa58f 60%, #79cbb3 100%); */
+
+  color: #ffffff;
+  padding: 16px 20px;
+  margin-top: 24px;
+}
+
+/* フッター内の文字 */
+footer p {
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+
+/* フッター内リンク */
 footer a {
-  color: #2f6f5f;
+  color: #e8fff8;
   text-decoration: none;
+  font-size: 12px;
 }
 
 footer a:hover {
