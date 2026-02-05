@@ -28,7 +28,7 @@
   width: 120px; text-align: center; white-space: nowrap;
 }
 #schedule th:nth-child(3), #schedule td:nth-child(3) {
-  width: 72px; text-align: center; white-space: nowrap;
+  width: 45px; text-align: center; white-space: nowrap;
 }
 #schedule th:nth-child(4), #schedule td:nth-child(4) {
   line-height: 1.6;
