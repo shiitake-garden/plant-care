@@ -188,65 +188,6 @@ function bindEvents(){
     downloadCSV(parts.join('_') + '.csv', data);
   });
 
-
-function bindEvents(){
-  ['cropFilter','monthFilter'].forEach(id=>{
-    $(id).addEventListener('change', applyFilters);
-  });
-  $('keyword').addEventListener('input', applyFilters);
-  $('clearFilters').addEventListener('click', ()=>{
-    $('cropFilter').value = '';
-    $('monthFilter').value = '';
-    $('keyword').value = '';
-    renderTable(master);
-    setStatus(`表示件数：${master.length}（全${master.length}）`);
-  });
-
-  // ↓↓↓ これらは削除（ローカル/サンプル読込を廃止するため）
-  // $('csvFile').addEventListener('change', ... );
-  // $('loadSample').addEventListener('click', ... );
-}
-
-(function init(){
-  fillMonthOptions();
-  fillCropOptions();
-  renderTable([]);
-  setStatus('🔄 CSV自動読込待機中：同フォルダの plant.csv を読み込みます。');
-  bindEvents();
-})();
-
-// 重複していた自動読込 IIFE を「今月フィルタ適用版」1本に統合
-(function autoLoadPlantCsv(){
-  const CSV_URL = 'plant.csv';
-  const thisMonth = String(new Date().getMonth() + 1);
-  fetch(CSV_URL, { cache: 'no-store' })
-    .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
-    .then(text => {
-      const rows = parseCSV(text);
-      master = rowsToObjects(rows);
-      if(!master || master.length === 0){
-        setStatus('⚠ plant.csv の内容が空のようです。');
-        log('plant.csv 読込：0件');
-        return;
-      }
-      fillCropOptions();
-      fillMonthOptions();
-      const sel = document.getElementById('monthFilter');
-      if (sel) sel.value = thisMonth;
-      applyFilters();
-      setStatus(`✅ plant.csv 自動読込：${master.length}件（今月=${thisMonth}で表示中）`);
-    })
-    .catch(err => {
-      setStatus(`ℹ plant.csv の自動読込はスキップ：${err}`);
-      log(`plant.csv 自動読込エラー：${err}`);
-    });
-})();
-
-
-
-
-  
-/*
   // ローカルCSV読込
   $('csvFile').addEventListener('change', (e)=>{
     const file = e.target.files[0]; 
@@ -262,16 +203,15 @@ function bindEvents(){
       setStatus(`✅ CSV読込済み：${master.length}件`);
     };
     reader.readAsText(file, 'utf-8');
-  });*/
-/*
+  });
+
   // サンプル読込：fetch → 失敗なら埋め込みにフォールバック
   const SAMPLE_URL = 'fruit_schedule_pot10_no_region.csv';
   const EMBEDDED = 
     '作物,栽培形態,月,作業,施肥_種類,N(g),P(g),K(g),施肥基準,施肥_メモ,薬剤\n'
   + 'レモン,鉢植え,4,春梢管理,緩効性,3,2,3,鉢(10号),少量,\n'
   + 'ブルーベリー,鉢植え,3,元肥,緩効性,3,2,2,鉢(10号),酸性用土,\n';
-  */
-/*
+
   $('loadSample').addEventListener('click', ()=>{
     setStatus('読込中...');
     fetch(SAMPLE_URL).then(r=>{
@@ -292,8 +232,8 @@ function bindEvents(){
       log(`サンプル読込エラー：${err}`);
     });
   });
-}*/
-/*
+}
+
 // 初期化
 (function init(){
   fillMonthOptions();   // 常時1〜12をセット
@@ -301,7 +241,7 @@ function bindEvents(){
   renderTable([]);      // 空表
   setStatus('🔄 CSV未読込：上の「サンプルCSVを読み込む」か「CSVを読み込む」を実行してください。');
   bindEvents();
-})();*/
+})();
 
 
 
