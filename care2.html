@@ -28,12 +28,14 @@
   <p class="muted">/data/pest_data.csv を読み込み、4軸で絞り込み表示します。未選択の軸はワイルドカード扱いです。</p>
 
   <div class="grid" role="search" aria-label="園芸データ検索フォーム">
-    <!-- 作物 -->
+    <!-- 作物：テキスト + プルダウン -->
     <div>
-      <label for="cropSelect">作物</label>
+      <label for="cropText">作物（テキストで候補を絞り込み）</label>
+      <input id="cropText" type="text" placeholder="例）ト（トマト／トウモロコシ など）" />
       <select id="cropSelect">
         <option value="">（すべて）</option>
       </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
     <!-- 害虫 -->
@@ -76,10 +78,7 @@ const normalize = (s) => (s ?? "")
   .normalize("NFKC")
   .toLowerCase();
 
-/** CSV文字列 → 配列（簡易パーサ）
- *  * サンプルはダブルクォート・カンマ含有なし想定
- *  * 将来的にライブラリ（PapaParse等）へ差し替えOK
- */
+/** CSVパース（簡易） */
 function parseCSV(csvText) {
   const lines = csvText.replace(/\r/g, "").trim().split("\n");
   const headers = lines.shift().split(",");
@@ -91,10 +90,11 @@ function parseCSV(csvText) {
   });
 }
 
-/** 重複を削って昇順 */
+/** 重複なし昇順 */
 const uniqSorted = arr => [...new Set(arr)].sort((a,b) => a.localeCompare(b, "ja"));
 
-/** UI要素 */
+/** UI参照 */
+const cropText      = document.getElementById("cropText");
 const cropSelect    = document.getElementById("cropSelect");
 const pestSelect    = document.getElementById("pestSelect");
 const symptomSelect = document.getElementById("symptomSelect");
@@ -103,45 +103,60 @@ const btnSearch     = document.getElementById("btnSearch");
 const btnClear      = document.getElementById("btnClear");
 const resultEl      = document.getElementById("result");
 
-let RAW = []; // CSV全行
-let ROWS = []; // 整形済み（薬剤を配列化）
+let RAW = [];    // CSV全行
+let ROWS = [];   // 整形済み（薬剤を配列化）
+let ALL_CROPS = []; // 作物の全候補キャッシュ（ユニーク）
 
-/** 画面初期化：セレクトにユニーク値を流し込む */
+/** セレクトへ流し込み */
 function populateSelect(selectEl, items) {
   const current = selectEl.value;
-  // 先頭の“（すべて）”を残して入れ替え
   selectEl.innerHTML = '<option value="">（すべて）</option>' + 
     items.map(v => `<option value="${v}">${v}</option>`).join("");
-  // 以前の値を保持できるなら保持
-  if ([...selectEl.options].some(o => o.value === current)) {
-    selectEl.value = current;
-  }
+  if ([...selectEl.options].some(o => o.value === current)) selectEl.value = current;
 }
 
+/** セレクト初期化 */
 function buildFacets(rows) {
-  const crops   = uniqSorted(rows.map(r => r["作物"]).filter(Boolean));
-  const pests   = uniqSorted(rows.map(r => r["害虫"]).filter(Boolean));
-  const symptoms= uniqSorted(rows.map(r => r["症状"]).filter(Boolean));
-  populateSelect(cropSelect, crops);
+  ALL_CROPS = uniqSorted(rows.map(r => r["作物"]).filter(Boolean));
+  const pests    = uniqSorted(rows.map(r => r["害虫"]).filter(Boolean));
+  const symptoms = uniqSorted(rows.map(r => r["症状"]).filter(Boolean));
+  populateSelect(cropSelect, ALL_CROPS);
   populateSelect(pestSelect, pests);
   populateSelect(symptomSelect, symptoms);
 }
 
-/** 行データから薬剤配列を作る（読点・空白・スラッシュ等に対応） */
+/** 薬剤配列化 */
 function tokenizeProducts(prodStr) {
-  // 区切り： 全角読点・コンマ・スラッシュ・中点・空白など
   return (prodStr || "")
     .split(/[、,，\/／・\s]+/).map(s => s.trim()).filter(Boolean);
 }
 
-/** 検索して描画 */
+/** デバウンス */
+function debounce(fn, wait=120) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+/** 作物候補をテキストでフィルタ（前方一致→部分一致） */
+const updateCropOptions = debounce(() => {
+  const q = normalize(cropText.value);
+  if (!q) {
+    populateSelect(cropSelect, ALL_CROPS);
+    return;
+  }
+  const head = ALL_CROPS.filter(v => normalize(v).startsWith(q));
+  const part = ALL_CROPS.filter(v => !normalize(v).startsWith(q) && normalize(v).includes(q));
+  populateSelect(cropSelect, [...head, ...part]);
+}, 100);
+
+/** 検索 */
 function doSearch() {
   const crop    = cropSelect.value;
   const pest    = pestSelect.value;
   const symptom = symptomSelect.value;
   const pQuery  = normalize(productInput.value);
 
-  let rows = ROWS.filter(r => 
+  let rows = ROWS.filter(r =>
     (!crop    || r.作物  === crop) &&
     (!pest    || r.害虫  === pest) &&
     (!symptom || r.症状  === symptom)
@@ -154,13 +169,12 @@ function doSearch() {
   renderTable(rows);
 }
 
-/** テーブル描画 */
+/** 表示 */
 function renderTable(rows) {
   if (!rows.length) {
     resultEl.innerHTML = `<p>該当データがありません。条件を緩めて再検索してください。</p>`;
     return;
   }
-
   const html = `
     <p><span class="count">${rows.length}</span> 件ヒット</p>
     <table aria-label="検索結果">
@@ -184,16 +198,18 @@ function renderTable(rows) {
 
 /** クリア */
 function clearFilters() {
+  cropText.value = "";
   cropSelect.value = "";
   pestSelect.value = "";
   symptomSelect.value = "";
   productInput.value = "";
+  // 候補リセット（作物）
+  populateSelect(cropSelect, ALL_CROPS);
   doSearch();
 }
 
 /** 起動 */
 (async function init() {
-  // CSVを取得
   const res = await fetch("data/pest_data.csv", { cache: "no-store" });
   if (!res.ok) {
     resultEl.innerHTML = `<p>CSVの取得に失敗しました（${res.status}）。配置とパスを確認してください。</p>`;
@@ -202,7 +218,6 @@ function clearFilters() {
   const csvText = await res.text();
   RAW = parseCSV(csvText);
 
-  // 整形（薬剤列を配列化＋正規化キャッシュ）
   ROWS = RAW.map(row => {
     const products = tokenizeProducts(row["薬剤"]);
     return {
@@ -212,19 +227,16 @@ function clearFilters() {
     };
   });
 
-  // セレクト初期化
   buildFacets(ROWS);
-
-  // 初回表示（全件）
   renderTable(ROWS);
 
   // イベント
-  btnSearch.addEventListener("click", doSearch);
-  btnClear.addEventListener("click", clearFilters);
-  // 変更即時反映（必要なければコメントアウト）
+  cropText.addEventListener("input", updateCropOptions);
   cropSelect.addEventListener("change", doSearch);
   pestSelect.addEventListener("change", doSearch);
   symptomSelect.addEventListener("change", doSearch);
+  btnSearch.addEventListener("click", doSearch);
+  btnClear.addEventListener("click", clearFilters);
   productInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
 })();
 </script>
