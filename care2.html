@@ -68,12 +68,19 @@
     </div>
 
     <!-- 症状：プルダウンのみ -->
+
+    <!-- 症状：テキスト + プルダウン（作物/害虫と同じUI） -->
     <div class="field">
-      <label for="symptomSelect">症状</label>
+      <label for="symptomText">症状（テキストで候補を絞り込み）</label>
+      <!-- ▼ 追加：症状のテキスト入力 -->
+      <input id="symptomText" type="text" placeholder="例）黄化／かすれ／ベタつき など" />
+    
       <select id="symptomSelect" aria-label="症状一覧">
         <option value="">（すべて）</option>
       </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
+
 
     <!-- 薬剤：テキストのみ -->
     <div class="field">
