@@ -67,8 +67,6 @@
       <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 症状：プルダウンのみ -->
-
     <!-- 症状：テキスト + プルダウン（作物/害虫と同じUI） -->
     <div class="field">
       <label for="symptomText">症状（テキストで候補を絞り込み）</label>
@@ -81,12 +79,24 @@
       <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-
+    <!--
     <!-- 薬剤：テキストのみ -->
     <div class="field">
       <label for="productInput">薬剤（部分一致）</label>
       <input id="productInput" type="text" placeholder="例）プレオ / モスピラン など" />
     </div>
+  -->
+<!-- 薬剤：テキスト + プルダウン（他フィールドと同じUI） -->
+  <div class="field">
+    <label for="productText">薬剤（テキストで候補を絞り込み）</label>
+    <input id="productText" type="text" placeholder="例）プレオ / モスピラン など" />
+    <select id="productSelect" aria-label="薬剤一覧">
+      <option value="">（すべて）</option>
+    </select>
+    <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+  </div>
+
+    
   </div>
 
   <div class="row">
@@ -131,20 +141,141 @@ const productInput  = document.getElementById("productInput");
 const btnSearch     = document.getElementById("btnSearch");
 const btnClear      = document.getElementById("btnClear");
 const resultEl      = document.getElementById("result");
-
+  
+const productText    = document.getElementById("productText"); 
+const productSelect  = document.getElementById("productSelect");
+  
 let RAW = [];       // CSV全行
 let ROWS = [];      // 整形済み（薬剤を配列化）
 let ALL_CROPS = []; // 作物の全候補（ユニーク）
 let ALL_PESTS = []; // 害虫の全候補（ユニーク）
+  
+let ALL_PRODUCTS = [];
+
 
 /** セレクトへ流し込み */
+
+
+
+/* ====== 既存：候補をセレクトに流し込む ====== */
 function populateSelect(selectEl, items) {
   const current = selectEl.value;
-  selectEl.innerHTML = '<option value="">（すべて）</option>' + 
+  if (items.length === 0) {                          // 候補ゼロ時のガイド（任意）
+    selectEl.innerHTML = '<option value="" disabled>候補がありません</option>';
+    return;
+  }
+  selectEl.innerHTML = '<option value="">（すべて）</option>' +
     items.map(v => `<option value="${v}">${v}</option>`).join("");
   if ([...selectEl.options].some(o => o.value === current)) selectEl.value = current;
 }
 
+/* ====== 既存：薬剤を配列化（区切り文字は追加してもOK） ====== */
+function tokenizeProducts(prodStr) {
+  return (prodStr || "")
+    .split(/[、,，;；\/／・\s]+/)     // ← セミコロン；も追加
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+/* ====== 既存：候補フィルタ（前方一致→部分一致） ====== */
+function filterOptions(allList, query) {
+  const q = normalize(query);
+  if (!q) return allList;
+  const head = allList.filter(v => normalize(v).startsWith(q));
+  const part = allList.filter(v => !normalize(v).startsWith(q) && normalize(v).includes(q));
+  return [...head, ...part];
+}
+
+/* ====== 追加：薬剤候補をテキストでフィルタ ====== */
+const updateProductOptions = debounce(() => {
+  populateSelect(productSelect, filterOptions(ALL_PRODUCTS, productText.value));
+}, 100);
+
+/* ====== 既存：検索 ====== */
+function doSearch() {
+  const crop     = cropSelect.value;
+  const pest     = pestSelect.value;
+  const symptom  = symptomSelect.value;
+  const pTextQ   = normalize(productText.value);   // ← テキストクエリ（部分一致）
+  const pSelectQ = productSelect.value;            // ← セレクトの選択（完全一致）
+
+  let rows = ROWS.filter(r =>
+    (!crop    || r.作物  === crop) &&
+    (!pest    || r.害虫  === pest) &&
+    (!symptom || r.症状  === symptom)
+  );
+
+  // 薬剤セレクトが選ばれていれば、アイテム完全一致で絞る
+  if (pSelectQ) {
+    const selNorm = normalize(pSelectQ);
+    rows = rows.filter(r => r._productsNorm.includes(selNorm));
+  }
+
+  // テキスト入力があれば、部分一致でさらに絞る
+  if (pTextQ) {
+    rows = rows.filter(r => r._productsNorm.some(p => p.includes(pTextQ)));
+  }
+
+  renderTable(rows);
+}
+
+/* ====== 既存：初期化 buildFacets 内で薬剤一覧を構築 ====== */
+function buildFacets(rows) {
+  ALL_CROPS     = uniqSorted(rows.map(r => r["作物"]).filter(Boolean));
+  ALL_PESTS     = uniqSorted(rows.map(r => r["害虫"]).filter(Boolean));
+  ALL_SYMPTOMS  = uniqSorted(rows.map(r => r["症状"]).filter(Boolean));
+  // ▼ 追加：薬剤（トークンを全行から集約 → ユニーク化）
+  const allProdTokens = rows.flatMap(r => tokenizeProducts(r["薬剤"]));
+  ALL_PRODUCTS  = uniqSorted(allProdTokens);
+
+  populateSelect(cropSelect, ALL_CROPS);
+  populateSelect(pestSelect, ALL_PESTS);
+  populateSelect(symptomSelect, ALL_SYMPTOMS);
+  populateSelect(productSelect, ALL_PRODUCTS);   // ← 追加
+}
+
+/* ====== 既存：ROWS 整形（各行にも正規化済みの薬剤配列を持たせる） ====== */
+// 例）init() 内の CSV 読み込み後：
+ROWS = RAW.map(row => {
+  const products = tokenizeProducts(row["薬剤"]);
+  return {
+    ...row,
+    _products: products,
+    _productsNorm: products.map(p => normalize(p))
+  };
+});
+
+/* ====== 既存：イベントに薬剤を追加 ====== */
+// 入力→候補更新
+productText.addEventListener("input", updateProductOptions);
+
+// 変更→検索
+productSelect.addEventListener("change", doSearch);
+
+// クリア時は薬剤もリセット
+function clearFilters() {
+  cropText.value = "";
+  pestText.value = "";
+  symptomText.value = "";
+  productText.value = "";        // ← 追加
+  cropSelect.value = "";
+  pestSelect.value = "";
+  symptomSelect.value = "";
+  productSelect.value = "";      // ← 追加
+
+  populateSelect(cropSelect, ALL_CROPS);
+  populateSelect(pestSelect, ALL_PESTS);
+  populateSelect(symptomSelect, ALL_SYMPTOMS);
+  populateSelect(productSelect, ALL_PRODUCTS);   // ← 追加
+
+  doSearch();
+}
+
+
+
+
+
+  
 /** セレクト初期化 */
 function buildFacets(rows) {
   ALL_CROPS = uniqSorted(rows.map(r => r["作物"]).filter(Boolean));
