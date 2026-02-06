@@ -13,38 +13,21 @@
   label { display:block; font-weight:600; margin-bottom:4px; }
   .field { display: grid; gap: 6px; }            /* コンテナ（中に input と select） */
   .field input[type="text"], .field select { 
-    width: 90%;                                  /* 同一幅 */
+    width: 100%;                                  /* 同一幅 */
     padding: 8px; 
     font-size: 14px; 
   }
+  /* もしテキストだけプルダウン「以下」の幅にしたければ、下記の max-width を活用（例：95%） */
+  /* .field input[type="text"] { max-width: 95%; } */
 
-/* ① グリッド子要素の最小幅を0に（あふれ防止） */
-.field { min-width: 0; }
-
-/* ② 入力とプルダウンの幅・箱モデル・表示をそろえる */
-.field input[type="text"],
-.field select {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box; /* パディング/ボーダー分も含めて100%に */
-  display: block;         /* 余計なインライン挙動を抑える */
-}
-
-/* （任意）③ 見た目の差を抑えたい場合はパディングを統一 */
-.field input[type="text"],
-.field select {
-  padding: 8px;           /* すでに8pxなら不要 */
-  font-size: 14px;        /* 既存と合わせる */
-}
-
-/* （任意）④ iOS/Safari等での“収まり”を安定させたい場合 */
-.field input[type="text"],
-.field select {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-  
+  .row { margin-top: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .muted { color: var(--c-muted); font-size: 12px; }
+  button { padding: 8px 12px; font-size: 14px; cursor: pointer; }
+  .result { margin-top: 16px; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--c-border); vertical-align: top; }
+  .chip { display:inline-block; padding:2px 8px; border-radius:999px; background: var(--c-chip-bg); margin-right: 4px; font-size: 12px; }
+  .count { font-weight:600; }
 </style>
 </head>
 <body>
