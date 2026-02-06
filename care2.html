@@ -18,7 +18,31 @@
     font-size: 14px; 
   }
 
+/* ① グリッド子要素の最小幅を0に（あふれ防止） */
+.field { min-width: 0; }
 
+/* ② 入力とプルダウンの幅・箱モデル・表示をそろえる */
+.field input[type="text"],
+.field select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* パディング/ボーダー分も含めて100%に */
+  display: block;         /* 余計なインライン挙動を抑える */
+}
+
+/* （任意）③ 見た目の差を抑えたい場合はパディングを統一 */
+.field input[type="text"],
+.field select {
+  padding: 8px;           /* すでに8pxなら不要 */
+  font-size: 14px;        /* 既存と合わせる */
+}
+
+/* （任意）④ iOS/Safari等での“収まり”を安定させたい場合 */
+.field input[type="text"],
+.field select {
+  -webkit-appearance: none;
+  appearance: none;
+}
 
   
 </style>
