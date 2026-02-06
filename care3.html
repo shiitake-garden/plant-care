@@ -96,6 +96,11 @@
     <span class="muted">Enter キーでも検索できます。</span>
   </div>
 
+  
+<button id="btnExport" type="button">結果をCSVで保存</button>
+  
+
+  
   <!-- 結果 -->
   <div class="result" id="result"></div>
 </div>
@@ -332,6 +337,54 @@ async function loadCSVWithFallback(){
     console.error(err);
   }
 })();
+
+//ここからダウンロード
+function exportRowsToCSV(rows) {
+  // 表頭
+  const head = ['作物','害虫','症状','薬剤'];
+  const csv = [
+    head.join(','),
+    ...rows.map(r => {
+      const line = [
+        r[COL.crop],
+        r[COL.pest],
+        r[COL.symptom],
+        // 薬剤は連結して1セルに
+        r._products.join('、')
+      ];
+      return line.map(v => (v ?? '').toString().replace(/"/g,'""')).map(v => `"${v}"`).join(',');
+    })
+  ].join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pest_search_result.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('btnExport').addEventListener('click', () => {
+  // 直近の検索結果を再計算（doSearchのロジックを関数化して使い回してもOK）
+  const crop     = cropSelect.value;
+  const pest     = pestSelect.value;
+  const symptom  = symptomSelect.value;
+  const pTextQ   = normalize(productText.value);
+  const pSelectQ = productSelect.value;
+
+  let rows = ROWS.filter(r =>
+    (!crop    || r[COL.crop]    === crop) &&
+    (!pest    || r[COL.pest]    === pest) &&
+    (!symptom || r[COL.symptom] === symptom)
+  );
+  if (pSelectQ) rows = rows.filter(r => r._productsNorm.includes(normalize(pSelectQ)));
+  if (pTextQ)   rows = rows.filter(r => r._productsNorm.some(p => p.includes(pTextQ)));
+
+  exportRowsToCSV(rows);
+});
+
+
+  
 </script>
 </body>
 </html>
