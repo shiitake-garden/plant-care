@@ -9,9 +9,17 @@
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; line-height: 1.6; margin: 0; padding: 16px; }
   h1 { font-size: 18px; margin: 0 0 8px; }
   .wrap { max-width: 1080px; margin: 0 auto; }
-  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: end; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: end; }
   label { display:block; font-weight:600; margin-bottom:4px; }
-  select, input[type="text"] { width:100%; padding:8px; font-size:14px; }
+  .field { display: grid; gap: 6px; }            /* コンテナ（中に input と select） */
+  .field input[type="text"], .field select { 
+    width: 100%;                                  /* 同一幅 */
+    padding: 8px; 
+    font-size: 14px; 
+  }
+  /* もしテキストだけプルダウン「以下」の幅にしたければ、下記の max-width を活用（例：95%） */
+  /* .field input[type="text"] { max-width: 95%; } */
+
   .row { margin-top: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .muted { color: var(--c-muted); font-size: 12px; }
   button { padding: 8px 12px; font-size: 14px; cursor: pointer; }
@@ -28,34 +36,36 @@
   <p class="muted">/data/pest_data.csv を読み込み、4軸で絞り込み表示します。未選択の軸はワイルドカード扱いです。</p>
 
   <div class="grid" role="search" aria-label="園芸データ検索フォーム">
-    <!-- 作物：テキスト + プルダウン -->
-    <div>
+    <!-- 作物：テキスト + プルダウン（同幅） -->
+    <div class="field">
       <label for="cropText">作物（テキストで候補を絞り込み）</label>
       <input id="cropText" type="text" placeholder="例）ト（トマト／トウモロコシ など）" />
-      <select id="cropSelect">
+      <select id="cropSelect" aria-label="作物一覧">
         <option value="">（すべて）</option>
       </select>
       <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 害虫 -->
-    <div>
-      <label for="pestSelect">害虫</label>
-      <select id="pestSelect">
+    <!-- 害虫：テキスト + プルダウン（同幅） -->
+    <div class="field">
+      <label for="pestText">害虫（テキストで候補を絞り込み）</label>
+      <input id="pestText" type="text" placeholder="例）あぶ（アブラムシ類）／はだ（ハダニ類）" />
+      <select id="pestSelect" aria-label="害虫一覧">
         <option value="">（すべて）</option>
       </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 症状 -->
-    <div>
+    <!-- 症状：プルダウンのみ -->
+    <div class="field">
       <label for="symptomSelect">症状</label>
-      <select id="symptomSelect">
+      <select id="symptomSelect" aria-label="症状一覧">
         <option value="">（すべて）</option>
       </select>
     </div>
 
-    <!-- 薬剤（テキスト検索） -->
-    <div>
+    <!-- 薬剤：テキストのみ -->
+    <div class="field">
       <label for="productInput">薬剤（部分一致）</label>
       <input id="productInput" type="text" placeholder="例）プレオ / モスピラン など" />
     </div>
@@ -96,6 +106,7 @@ const uniqSorted = arr => [...new Set(arr)].sort((a,b) => a.localeCompare(b, "ja
 /** UI参照 */
 const cropText      = document.getElementById("cropText");
 const cropSelect    = document.getElementById("cropSelect");
+const pestText      = document.getElementById("pestText");
 const pestSelect    = document.getElementById("pestSelect");
 const symptomSelect = document.getElementById("symptomSelect");
 const productInput  = document.getElementById("productInput");
@@ -103,9 +114,10 @@ const btnSearch     = document.getElementById("btnSearch");
 const btnClear      = document.getElementById("btnClear");
 const resultEl      = document.getElementById("result");
 
-let RAW = [];    // CSV全行
-let ROWS = [];   // 整形済み（薬剤を配列化）
-let ALL_CROPS = []; // 作物の全候補キャッシュ（ユニーク）
+let RAW = [];       // CSV全行
+let ROWS = [];      // 整形済み（薬剤を配列化）
+let ALL_CROPS = []; // 作物の全候補（ユニーク）
+let ALL_PESTS = []; // 害虫の全候補（ユニーク）
 
 /** セレクトへ流し込み */
 function populateSelect(selectEl, items) {
@@ -118,14 +130,15 @@ function populateSelect(selectEl, items) {
 /** セレクト初期化 */
 function buildFacets(rows) {
   ALL_CROPS = uniqSorted(rows.map(r => r["作物"]).filter(Boolean));
-  const pests    = uniqSorted(rows.map(r => r["害虫"]).filter(Boolean));
+  ALL_PESTS = uniqSorted(rows.map(r => r["害虫"]).filter(Boolean));
   const symptoms = uniqSorted(rows.map(r => r["症状"]).filter(Boolean));
+
   populateSelect(cropSelect, ALL_CROPS);
-  populateSelect(pestSelect, pests);
+  populateSelect(pestSelect, ALL_PESTS);
   populateSelect(symptomSelect, symptoms);
 }
 
-/** 薬剤配列化 */
+/** 薬剤配列化（読点・カンマ・スラッシュ・空白など） */
 function tokenizeProducts(prodStr) {
   return (prodStr || "")
     .split(/[、,，\/／・\s]+/).map(s => s.trim()).filter(Boolean);
@@ -137,16 +150,19 @@ function debounce(fn, wait=120) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
 }
 
-/** 作物候補をテキストでフィルタ（前方一致→部分一致） */
+/** 入力テキストで候補をフィルタ（前方一致→部分一致） */
+function filterOptions(allList, query) {
+  const q = normalize(query);
+  if (!q) return allList;
+  const head = allList.filter(v => normalize(v).startsWith(q));
+  const part = allList.filter(v => !normalize(v).startsWith(q) && normalize(v).includes(q));
+  return [...head, ...part];
+}
 const updateCropOptions = debounce(() => {
-  const q = normalize(cropText.value);
-  if (!q) {
-    populateSelect(cropSelect, ALL_CROPS);
-    return;
-  }
-  const head = ALL_CROPS.filter(v => normalize(v).startsWith(q));
-  const part = ALL_CROPS.filter(v => !normalize(v).startsWith(q) && normalize(v).includes(q));
-  populateSelect(cropSelect, [...head, ...part]);
+  populateSelect(cropSelect, filterOptions(ALL_CROPS, cropText.value));
+}, 100);
+const updatePestOptions = debounce(() => {
+  populateSelect(pestSelect, filterOptions(ALL_PESTS, pestText.value));
 }, 100);
 
 /** 検索 */
@@ -199,12 +215,13 @@ function renderTable(rows) {
 /** クリア */
 function clearFilters() {
   cropText.value = "";
+  pestText.value = "";
   cropSelect.value = "";
   pestSelect.value = "";
   symptomSelect.value = "";
   productInput.value = "";
-  // 候補リセット（作物）
-  populateSelect(cropSelect, ALL_CROPS);
+  populateSelect(cropSelect, ALL_CROPS); // 候補リセット
+  populateSelect(pestSelect, ALL_PESTS); // 候補リセット
   doSearch();
 }
 
@@ -230,8 +247,11 @@ function clearFilters() {
   buildFacets(ROWS);
   renderTable(ROWS);
 
-  // イベント
+  // イベント（入力→候補更新）
   cropText.addEventListener("input", updateCropOptions);
+  pestText.addEventListener("input", updatePestOptions);
+
+  // イベント（変更→検索）
   cropSelect.addEventListener("change", doSearch);
   pestSelect.addEventListener("change", doSearch);
   symptomSelect.addEventListener("change", doSearch);
