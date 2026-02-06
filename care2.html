@@ -13,37 +13,10 @@
   label { display:block; font-weight:600; margin-bottom:4px; }
   .field { display: grid; gap: 6px; }            /* コンテナ（中に input と select） */
   .field input[type="text"], .field select { 
-    width: 100%;                                  /* 同一幅 */
+    width: 90%;                                  /* 同一幅 */
     padding: 8px; 
     font-size: 14px; 
   }
-
-
-/* 1) Grid/Flex 子要素の最小幅をゼロにして、親の列幅にきちんと収める */
-.field { min-width: 0; }
-
-/* 2) input/select の箱モデルと幅を統一（100%で揃える） */
-.field input[type="text"],
-.field select {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  display: block;
-}
-
-/* 3) 余計な折返しを防ぐため、appearance 差をならす（任意） */
-.field input[type="text"],
-.field select {
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-/* 4) Grid の列が折返しやすい場合は、min を少し下げる（例） */
-.grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-/* ↑ 260px 等になっていたら 220〜240px 程度へ下げると同一行に乗りやすくなります */
-
-
-
 
 
 
