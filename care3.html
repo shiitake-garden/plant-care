@@ -7,28 +7,26 @@
 <style>
   :root {
     --c-muted:#666; --c-border:#ddd; --c-chip-bg:#eef;
-    --fs-base:16px;       /* モバイルの既定フォント（iOSズーム回避） */
-    --fs-field-pc:13px;   /* PCで入力欄を小さくしたい時の目安 */
-    --min-col:240px;      /* 4列を1行に並べたい時の最小列幅 */
+    --fs-base:16px;       /* モバイル既定（iOSの自動ズーム回避） */
+    --fs-field-pc:13px;   /* PC時の入力フォント */
+    --min-col:240px;      /* 4カラム1行に並べたい時の最小列幅 */
   }
-  html, body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; }
+  html, body { font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif; }
   body { margin:0; padding:16px; line-height:1.6; font-size:var(--fs-base); }
   .wrap { max-width: 1200px; margin: 0 auto; }
   h1 { font-size: 18px; margin: 0 0 8px; }
 
-  /* フィルタエリア：4カラムを1行に（広い画面）、狭い画面は自動折返し */
+  /* フィルタ（広い画面では4カラム1行。狭い画面は自動折返し） */
   .filters {
-    display: grid;
-    gap: 12px;
+    display: grid; gap: 12px;
     grid-template-columns: repeat(auto-fit, minmax(var(--min-col), 1fr));
-    align-items: end;
-    margin: 8px 0 12px;
+    align-items: end; margin: 8px 0 12px;
   }
   .field { display: grid; gap: 6px; min-width: 0; }
   .field label { font-weight: 600; }
   .field input[type="text"], .field select {
     width: 100%; max-width: 100%; box-sizing: border-box; display: block;
-    padding: 8px; font-size: 1rem;    /* モバイルは16px（=1rem） */
+    padding: 8px; font-size: 1rem;  /* モバイルは16px */
   }
   .muted { color: var(--c-muted); font-size: 12px; line-height: 1.3; word-break: break-word; }
 
@@ -37,7 +35,7 @@
     .field input[type="text"], .field select { font-size: var(--fs-field-pc); }
   }
 
-  /* 結果テーブルは常にフル幅（filters の外に置く） */
+  /* 結果はフィルタの外＝常にフル幅 */
   .result { margin-top: 12px; }
   table { width: 100%; border-collapse: collapse; }
   th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--c-border); vertical-align: top; }
@@ -50,42 +48,290 @@
 <body>
 <div class="wrap">
   <h1>園芸データ検索（作物・害虫・症状・薬剤）</h1>
-  <p class="muted">/data/pest_data.csv を読み込み、4軸で絞り込み表示します。未選択／未入力はワイルドカード扱いです。</p>
+  <p class="muted">CSV：<code>/data/pest_data.csv</code> または <code>/plant-care/data/pest_data.csv</code> を自動探索して読み込みます。未選択／未入力はワイルドカード扱いです。</p>
 
-  <!-- ▼ フィルタ（1行に4ブロック。狭い画面では自動で折返し） -->
+  <!-- フィルタ -->
   <div class="filters" role="search" aria-label="園芸データ検索フォーム">
-    <!-- 作物：テキスト + プルダウン -->
     <div class="field">
       <label for="cropText">作物（テキストで候補を絞り込み）</label>
       <input id="cropText" type="text" placeholder="例）ト（トマト／トウモロコシ）" />
       <select id="cropSelect" aria-label="作物一覧">
         <option value="">（すべて）</option>
       </select>
-      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+      <div class="muted">未入力＝全候補。入力で「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 害虫：テキスト + プルダウン -->
     <div class="field">
       <label for="pestText">害虫（テキストで候補を絞り込み）</label>
       <input id="pestText" type="text" placeholder="例）あぶ（アブラムシ類）／はだ（ハダニ類）" />
       <select id="pestSelect" aria-label="害虫一覧">
         <option value="">（すべて）</option>
       </select>
-      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+      <div class="muted">未入力＝全候補。入力で「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 症状：テキスト + プルダウン -->
     <div class="field">
       <label for="symptomText">症状（テキストで候補を絞り込み）</label>
       <input id="symptomText" type="text" placeholder="例）黄化／かすれ／ベタつき など" />
       <select id="symptomSelect" aria-label="症状一覧">
         <option value="">（すべて）</option>
       </select>
-      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+      <div class="muted">未入力＝全候補。入力で「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
-    <!-- 薬剤：テキスト + プルダウン（CSVの薬剤列をトークン化してユニーク化） -->
     <div class="field">
       <label for="productText">薬剤（テキストで候補を絞り込み）</label>
       <input id="productText" type="text" placeholder="例）プレオ／モスピラン など" />
       <select id="productSelect" aria-label="薬剤一覧">
+        <option value="">（すべて）</option>
+      </select>
+      <div class="muted">未入力＝全候補。入力で「前方一致」優先＋「部分一致」も表示。</div>
+    </div>
+  </div>
+
+  <!-- 操作 -->
+  <div class="row">
+    <button id="btnSearch">検索</button>
+    <button id="btnClear" type="button">条件クリア</button>
+    <span class="muted">Enter キーでも検索できます。</span>
+  </div>
+
+  <!-- 結果 -->
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+/* ===== ユーティリティ ===== */
+const normalize = (s)=> (s??"").toString().replace(/\uFEFF/g,"").trim().normalize("NFKC").toLowerCase();
+
+/* CSVパース（BOM除去＋素直なカンマ区切り想定） */
+function parseCSV(csvText){
+  const text = csvText.replace(/^\uFEFF/,""); // 先頭BOM除去
+  const lines = text.replace(/\r/g,"").trim().split("\n");
+  if(lines.length===0) return { headers:[], rows:[] };
+  const rawHeaders = lines.shift().split(",");
+  const headers = rawHeaders.map(h => h.replace(/\uFEFF/g,"").trim());
+
+  // 行をオブジェクト化（簡易：ダブルクォート内のカンマは想定しない）
+  const rows = lines.map(line=>{
+    const cols = line.split(",");
+    const obj={}; headers.forEach((h,i)=> obj[h]= (cols[i]??"").trim());
+    return obj;
+  });
+  return { headers, rows };
+}
+
+/* 期待列名の正規化 */
+function pickColumn(headers, candidates){
+  // 候補配列のいずれかに部分一致するヘッダ名を返す
+  const H = headers.map(h => h.replace(/\s/g,""));
+  for(const cand of candidates){
+    const hitIndex = H.findIndex(h => h.includes(cand));
+    if(hitIndex>=0) return headers[hitIndex];
+  }
+  return null;
+}
+
+/* ユニーク+昇順 */
+const uniqSorted = arr => [...new Set(arr)].sort((a,b)=> a.localeCompare(b,"ja"));
+
+/* フィルタ候補の優先（前方一致→部分一致） */
+function filterOptions(allList, query){
+  const q = normalize(query);
+  if(!q) return allList;
+  const head = allList.filter(v => normalize(v).startsWith(q));
+  const part = allList.filter(v => !normalize(v).startsWith(q) && normalize(v).includes(q));
+  return [...head, ...part];
+}
+
+/* 候補描画 */
+function populateSelect(selectEl, items){
+  const current = selectEl.value;
+  if(items.length===0){
+    selectEl.innerHTML = '<option value="" disabled>候補がありません</option>';
+    return;
+  }
+  selectEl.innerHTML = '<option value="">（すべて）</option>' + items.map(v=>`<option value="${v}">${v}</option>`).join("");
+  if([...selectEl.options].some(o=>o.value===current)) selectEl.value=current;
+}
+
+/* デバウンス */
+function debounce(fn, wait=120){ let t=null; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),wait); }; }
+
+/* ===== 参照 ===== */
+const cropText      = document.getElementById("cropText");
+const cropSelect    = document.getElementById("cropSelect");
+const pestText      = document.getElementById("pestText");
+const pestSelect    = document.getElementById("pestSelect");
+const symptomText   = document.getElementById("symptomText");
+const symptomSelect = document.getElementById("symptomSelect");
+const productText   = document.getElementById("productText");
+const productSelect = document.getElementById("productSelect");
+const btnSearch     = document.getElementById("btnSearch");
+const btnClear      = document.getElementById("btnClear");
+const resultEl      = document.getElementById("result");
+
+/* ===== データキャッシュ ===== */
+let RAW=[], ROWS=[];
+let COL = { crop:null, pest:null, symptom:null, product:null }; // 列名（BOM/表記ゆれ対応）
+let ALL_CROPS=[], ALL_PESTS=[], ALL_SYMPTOMS=[], ALL_PRODUCTS=[];
+
+/* 薬剤トークン化（「、」/カンマ/セミコロン/スラッシュ/中点/空白） */
+function tokenizeProducts(prodStr){
+  return (prodStr||"").split(/[、,，;；\/／・\s]+/).map(s=>s.trim()).filter(Boolean);
+}
+
+/* ===== 候補更新（テキスト→プルダウン） ===== */
+const updateCropOptions    = debounce(()=> populateSelect(cropSelect,    filterOptions(ALL_CROPS,    cropText.value)),100);
+const updatePestOptions    = debounce(()=> populateSelect(pestSelect,    filterOptions(ALL_PESTS,    pestText.value)),100);
+const updateSymptomOptions = debounce(()=> populateSelect(symptomSelect, filterOptions(ALL_SYMPTOMS, symptomText.value)),100);
+const updateProductOptions = debounce(()=> populateSelect(productSelect, filterOptions(ALL_PRODUCTS, productText.value)),100);
+
+/* ===== 検索 ===== */
+function doSearch(){
+  const crop     = cropSelect.value;
+  const pest     = pestSelect.value;
+  const symptom  = symptomSelect.value;
+  const pTextQ   = normalize(productText.value);
+  const pSelectQ = productSelect.value;
+
+  let rows = ROWS.filter(r =>
+    (!crop    || r[COL.crop]    === crop) &&
+    (!pest    || r[COL.pest]    === pest) &&
+    (!symptom || r[COL.symptom] === symptom)
+  );
+
+  if(pSelectQ){ // 薬剤プルダウンは完全一致
+    const selNorm = normalize(pSelectQ);
+    rows = rows.filter(r => r._productsNorm.includes(selNorm));
+  }
+  if(pTextQ){   // 薬剤テキストは部分一致
+    rows = rows.filter(r => r._productsNorm.some(p => p.includes(pTextQ)));
+  }
+  renderTable(rows);
+}
+
+/* ===== 表示 ===== */
+function renderTable(rows){
+  if(!rows.length){
+    resultEl.innerHTML = '<p>該当データがありません。条件を緩めて再検索してください。</p>';
+    return;
+  }
+  const html = `
+    <p><span class="count">${rows.length}</span> 件ヒット</p>
+    <table aria-label="検索結果">
+      <thead><tr><th>作物</th><th>害虫</th><th>症状</th><th>薬剤（例）</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`
+          <tr>
+            <td>${r[COL.crop]}</td>
+            <td>${r[COL.pest]}</td>
+            <td>${r[COL.symptom]}</td>
+            <td>${r._products.map(p=>`<span class="chip">${p}</span>`).join(" ")}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+  resultEl.innerHTML = html;
+}
+
+/* ===== クリア ===== */
+function clearFilters(){
+  cropText.value=""; pestText.value=""; symptomText.value=""; productText.value="";
+  cropSelect.value=""; pestSelect.value=""; symptomSelect.value=""; productSelect.value="";
+  populateSelect(cropSelect,    ALL_CROPS);
+  populateSelect(pestSelect,    ALL_PESTS);
+  populateSelect(symptomSelect, ALL_SYMPTOMS);
+  populateSelect(productSelect, ALL_PRODUCTS);
+  renderTable(ROWS);
+}
+
+/* ===== CSVロード（パス自動フォールバック + BOM/列名ゆれ対応） ===== */
+async function loadCSVWithFallback(){
+  const tryUrls = [
+    'data/pest_data.csv',               // /plant-care/data/...
+    '/data/pest_data.csv',              // ルート直下
+    './pest_data.csv'                   // 同階層
+  ];
+  let ok = null, lastErr = null, usedUrl = null;
+  for(const url of tryUrls){
+    try{
+      const res = await fetch(url, { cache:'no-store' });
+      if(res.ok){ ok = await res.text(); usedUrl = url; break; }
+      lastErr = `HTTP ${res.status} @ ${url}`;
+    }catch(e){ lastErr = `${e} @ ${url}`; }
+  }
+  if(!ok) throw new Error(`CSV取得失敗：${lastErr}`);
+
+  const { headers, rows } = parseCSV(ok);
+
+  // 期待列名の決定（BOM除去／全角半角・空白無視）
+  const H = headers.map(h => h.replace(/\s/g,""));
+  COL.crop    = pickColumn(headers,   ['作物','crop']);
+  COL.pest    = pickColumn(headers,   ['害虫','pest']);
+  COL.symptom = pickColumn(headers,   ['症状','symptom']);
+  COL.product = pickColumn(headers,   ['薬剤','products','薬剤（最大5）','効果のある農薬商品名（最大5）']);
+
+  if(!(COL.crop && COL.pest && COL.symptom && COL.product)){
+    throw new Error(`列名が見つかりません（見つかったヘッダ：${headers.join(' / ')}）。`+
+      ` 期待：作物/害虫/症状/薬剤`);
+  }
+
+  // 整形（薬剤配列を付与）
+  const enriched = rows.map(row=>{
+    const prods = tokenizeProducts(row[COL.product]);
+    return { ...row, _products: prods, _productsNorm: prods.map(p=>normalize(p)) };
+  });
+
+  // 候補リスト
+  ALL_CROPS     = uniqSorted(enriched.map(r=>r[COL.crop]).filter(Boolean));
+  ALL_PESTS     = uniqSorted(enriched.map(r=>r[COL.pest]).filter(Boolean));
+  ALL_SYMPTOMS  = uniqSorted(enriched.map(r=>r[COL.symptom]).filter(Boolean));
+  ALL_PRODUCTS  = uniqSorted(enriched.flatMap(r=>tokenizeProducts(r[COL.product])));
+
+  // UIへ流し込み
+  populateSelect(cropSelect,    ALL_CROPS);
+  populateSelect(pestSelect,    ALL_PESTS);
+  populateSelect(symptomSelect, ALL_SYMPTOMS);
+  populateSelect(productSelect, ALL_PRODUCTS);
+
+  // 返却
+  return enriched;
+}
+
+/* ===== 起動 ===== */
+(async function init(){
+  try{
+    ROWS = await loadCSVWithFallback();
+    renderTable(ROWS);
+
+    // 入力→候補更新
+    cropText.addEventListener("input",    debounce(updateCropOptions,    80));
+    pestText.addEventListener("input",    debounce(updatePestOptions,    80));
+    symptomText.addEventListener("input", debounce(updateSymptomOptions, 80));
+    productText.addEventListener("input", debounce(updateProductOptions, 80));
+
+    // 変更→検索
+    cropSelect.addEventListener("change", doSearch);
+    pestSelect.addEventListener("change", doSearch);
+    symptomSelect.addEventListener("change", doSearch);
+    productSelect.addEventListener("change", doSearch);
+
+    // ボタン
+    btnSearch.addEventListener("click", doSearch);
+    btnClear.addEventListener("click", clearFilters);
+
+    // Enterキーで検索
+    document.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doSearch(); });
+
+  }catch(err){
+    resultEl.innerHTML = `<p style="color:#b00;">初期化エラー：${String(err)}</p>
+      <p class="muted">CSVの配置場所を <code>/data/pest_data.csv</code> または <code>/plant-care/data/pest_data.csv</code> に置き、
+      先頭BOMの付与/非付与を確認してください（UTF-8保存推奨）。</p>`;
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
