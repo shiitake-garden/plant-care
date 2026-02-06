@@ -1,0 +1,41 @@
+:root { --brand: #6a9f58; --text:#333; --soft:#f7f7f7; }
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:var(--text);line-height:1.8}
+.site-header{
+  background:url("/images/orchard-banner.png") center/cover no-repeat;
+  color:#fff; text-align:center; padding:80px 20px;
+}
+.site-title{background:rgba(0,0,0,.45); display:inline-block; padding:16px 24px; border-radius:8px; font-size:clamp(20px,4vw,36px)}
+.container{max-width:900px; margin:40px auto; padding:0 20px}
+h2{border-left:6px solid var(--brand); padding-left:10px}
+.site-footer{background:var(--soft); text-align:center; padding:20px; font-size:.95em}
+.site-footer a{color:inherit; text-decoration:underline; margin:0 8px}
+/* ---- こんな方に向いています ---- */
+.for-you {
+  background: #f6f8f3;           /* 土・紙っぽい淡色 */
+  border-left: 6px solid #6a9f58; /* 既存のグリーン系と統一 */
+  padding: 20px 24px;
+  margin: 40px 0;
+  border-radius: 4px;
+}
+
+.for-you ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.for-you li {
+  padding: 4px 0 4px 24px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.for-you li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  color: #6a9f58;
+  font-weight: bold;
+}
