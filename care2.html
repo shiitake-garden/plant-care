@@ -13,31 +13,21 @@
   label { display:block; font-weight:600; margin-bottom:4px; }
   .field { display: grid; gap: 6px; }            /* コンテナ（中に input と select） */
   .field input[type="text"], .field select { 
-    width: 95%;                                  /* 同一幅 */
+    width: 100%;                                  /* 同一幅 */
     padding: 8px; 
     font-size: 14px; 
   }
-.field { min-width: 0; }
+  /* もしテキストだけプルダウン「以下」の幅にしたければ、下記の max-width を活用（例：95%） */
+  /* .field input[type="text"] { max-width: 95%; } */
 
-.field input[type="text"],
-.field select {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  display: block;
-}
-
-.grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-
-@media (min-width: 1100px) {
-  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-
-/* テキストを少し小さくして収まり改善 */
-.field select { font-size: 0.95em; }
-/* padding微調整（任意） */
-/* .field input[type="text"], .field select { padding: 6px 8px; } */
-
+  .row { margin-top: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .muted { color: var(--c-muted); font-size: 12px; }
+  button { padding: 8px 12px; font-size: 14px; cursor: pointer; }
+  .result { margin-top: 16px; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--c-border); vertical-align: top; }
+  .chip { display:inline-block; padding:2px 8px; border-radius:999px; background: var(--c-chip-bg); margin-right: 4px; font-size: 12px; }
+  .count { font-weight:600; }
 </style>
 </head>
 <body>
@@ -86,11 +76,11 @@
     <button id="btnClear" type="button">条件クリア</button>
     <span class="muted">Enter キーでも検索できます。</span>
   </div>
-    <div class="result" id="result"></div>
+
+  <div class="result" id="result"></div>
 </div>
 
-
-  <script>
+<script>
 /** 正規化（全角半角・小文字化） */
 const normalize = (s) => (s ?? "")
   .toString()
