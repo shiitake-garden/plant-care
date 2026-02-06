@@ -86,11 +86,10 @@
     <button id="btnClear" type="button">条件クリア</button>
     <span class="muted">Enter キーでも検索できます。</span>
   </div>
-
-  <div class="result" id="result"></div>
 </div>
+  <div class="result" id="result"></div>
 
-<script>
+  <script>
 /** 正規化（全角半角・小文字化） */
 const normalize = (s) => (s ?? "")
   .toString()
