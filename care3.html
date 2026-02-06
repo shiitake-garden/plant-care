@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>園芸データ検索（作物・害虫・症状・薬剤）</title>
+<style>
+  :root {
+    --c-muted:#666; --c-border:#ddd; --c-chip-bg:#eef;
+    --fs-base:16px;       /* モバイルの既定フォント（iOSズーム回避） */
+    --fs-field-pc:13px;   /* PCで入力欄を小さくしたい時の目安 */
+    --min-col:240px;      /* 4列を1行に並べたい時の最小列幅 */
+  }
+  html, body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; }
+  body { margin:0; padding:16px; line-height:1.6; font-size:var(--fs-base); }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+
+  /* フィルタエリア：4カラムを1行に（広い画面）、狭い画面は自動折返し */
+  .filters {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(var(--min-col), 1fr));
+    align-items: end;
+    margin: 8px 0 12px;
+  }
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .field label { font-weight: 600; }
+  .field input[type="text"], .field select {
+    width: 100%; max-width: 100%; box-sizing: border-box; display: block;
+    padding: 8px; font-size: 1rem;    /* モバイルは16px（=1rem） */
+  }
+  .muted { color: var(--c-muted); font-size: 12px; line-height: 1.3; word-break: break-word; }
+
+  /* PCでは入力を少し小さく（任意） */
+  @media (min-width: 1024px) {
+    .field input[type="text"], .field select { font-size: var(--fs-field-pc); }
+  }
+
+  /* 結果テーブルは常にフル幅（filters の外に置く） */
+  .result { margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--c-border); vertical-align: top; }
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--c-chip-bg); margin-right: 4px; font-size: 12px; }
+  .row { margin-top: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button { padding: 8px 12px; cursor: pointer; }
+  .count { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>園芸データ検索（作物・害虫・症状・薬剤）</h1>
+  <p class="muted">/data/pest_data.csv を読み込み、4軸で絞り込み表示します。未選択／未入力はワイルドカード扱いです。</p>
+
+  <!-- ▼ フィルタ（1行に4ブロック。狭い画面では自動で折返し） -->
+  <div class="filters" role="search" aria-label="園芸データ検索フォーム">
+    <!-- 作物：テキスト + プルダウン -->
+    <div class="field">
+      <label for="cropText">作物（テキストで候補を絞り込み）</label>
+      <input id="cropText" type="text" placeholder="例）ト（トマト／トウモロコシ）" />
+      <select id="cropSelect" aria-label="作物一覧">
+        <option value="">（すべて）</option>
+      </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+    </div>
+
+    <!-- 害虫：テキスト + プルダウン -->
+    <div class="field">
+      <label for="pestText">害虫（テキストで候補を絞り込み）</label>
+      <input id="pestText" type="text" placeholder="例）あぶ（アブラムシ類）／はだ（ハダニ類）" />
+      <select id="pestSelect" aria-label="害虫一覧">
+        <option value="">（すべて）</option>
+      </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+    </div>
+
+    <!-- 症状：テキスト + プルダウン -->
+    <div class="field">
+      <label for="symptomText">症状（テキストで候補を絞り込み）</label>
+      <input id="symptomText" type="text" placeholder="例）黄化／かすれ／ベタつき など" />
+      <select id="symptomSelect" aria-label="症状一覧">
+        <option value="">（すべて）</option>
+      </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+    </div>
+
+    <!-- 薬剤：テキスト + プルダウン（CSVの薬剤列をトークン化してユニーク化） -->
+    <div class="field">
+      <label for="productText">薬剤（テキストで候補を絞り込み）</label>
+      <input id="productText" type="text" placeholder="例）プレオ／モスピラン など" />
+      <select id="productSelect" aria-label="薬剤一覧">
