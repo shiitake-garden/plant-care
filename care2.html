@@ -28,6 +28,25 @@
   th, td { text-align:left; padding:8px; border-bottom:1px solid var(--c-border); vertical-align: top; }
   .chip { display:inline-block; padding:2px 8px; border-radius:999px; background: var(--c-chip-bg); margin-right: 4px; font-size: 12px; }
   .count { font-weight:600; }
+
+
+input[type="text"] {
+  font-size: 12px;       /* お好みで 12〜14px 程度 */
+  line-height: 1.4;      /* 文字詰まり防止（任意） */
+}
+
+
+/* 各ブラウザ向けに placeholder のサイズを調整 */
+.field input::placeholder {            /* 標準 */
+  font-size: 0.85em;                   /* 入力文字より少し小さめに（任意） */
+  opacity: 0.7;                        /* 視認性調整（任意） */
+}
+.field input::-webkit-input-placeholder { font-size: 0.85em; }
+.field input::-moz-placeholder            { font-size: 0.85em; }
+.field input:-ms-input-placeholder        { font-size: 0.85em; }
+
+
+  
 </style>
 </head>
 <body>
@@ -56,6 +75,7 @@
       <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
     </div>
 
+    <!--
     <!-- 症状：プルダウンのみ -->
     <div class="field">
       <label for="symptomSelect">症状</label>
@@ -63,7 +83,21 @@
         <option value="">（すべて）</option>
       </select>
     </div>
-
+    -->
+    
+    
+    <!-- 症状：テキスト + プルダウン（作物/害虫と同じUI） -->
+    <div class="field">
+      <label for="symptomText">症状（テキストで候補を絞り込み）</label>
+      <!-- ▼ 追加：症状のテキスト入力 -->
+      <input id="symptomText" type="text" placeholder="例）黄化／かすれ／ベタつき など" />
+    
+      <select id="symptomSelect" aria-label="症状一覧">
+        <option value="">（すべて）</option>
+      </select>
+      <div class="muted">未入力＝全候補。入力すると「前方一致」優先＋「部分一致」も表示。</div>
+    </div>
+    
     <!-- 薬剤：テキストのみ -->
     <div class="field">
       <label for="productInput">薬剤（部分一致）</label>
